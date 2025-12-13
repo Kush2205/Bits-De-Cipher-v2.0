@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
+    "@types/axios": "^0.14.4",
+    "axios": "^1.13.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.17"
