@@ -55,10 +55,20 @@ model Question {
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
   userAnswers UserQuestionAnswer[]
-  
+  hints       Hint[]
   @@index([name])
 }
 
+model Hint{
+  id        Int       @id @default(autoincrement())
+  questionId Int
+  hintText  String    @default("")
+  used      Boolean?     @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  usedAt    DateTime?
+  question  Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
 
 model UserQuestionAnswer {
   id              Int   @id @default(autoincrement())

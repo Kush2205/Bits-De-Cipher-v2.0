@@ -45,9 +45,7 @@
  * - Used for password reset flow
  */
 
-import { PrismaClient } from '@repo/database';
-
-const prisma = new PrismaClient();
+import prisma from "@repo/db/client"
 
 // TODO: Implement service functions
 

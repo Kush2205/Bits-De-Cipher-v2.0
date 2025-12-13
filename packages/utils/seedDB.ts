@@ -15,18 +15,31 @@ const seedQuestions = async () => {
         "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731216/oamepxa9507ppsdpru3c.png"
     ];
 
+
+
     imgUrl.forEach(async (url, index) => {
         await prisma.question.create({
             data: {
-                id : index + 1,
+                id: index + 1,
                 name: `Question ${index + 1}`,
                 imageUrl: url,
                 points: 500,
                 maxPoints: 500,
+                hints: {
+                    create: [
+                        {
+                            hintText: `This is hint 1 for question ${index + 1}`,
+                        },
+                        {
+                            hintText: `This is hint 2 for question ${index + 1}`,
+                        }
+
+                    ]
+                }
             }
         })
-    })
 
+    })
 }
 
 const seedUsers = async () => {
