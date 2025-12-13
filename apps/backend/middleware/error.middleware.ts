@@ -28,7 +28,7 @@
  * - Log full error server-side for debugging
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { type NextFunction } from 'express';
 
 // TODO: Implement error handling middleware
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {

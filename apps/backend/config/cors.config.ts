@@ -65,7 +65,7 @@
  * app.use(cors(corsOptions));
  */
 
-import { CorsOptions } from 'cors';
+import { type CorsOptions } from 'cors';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 

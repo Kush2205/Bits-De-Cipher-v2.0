@@ -23,7 +23,7 @@
  * - Chain after authMiddleware
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { type NextFunction } from 'express';
 
 // Extend Express Request type to include user
 declare global {

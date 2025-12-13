@@ -44,8 +44,7 @@
  * - Client handles token removal
  */
 
-import { Request, Response, NextFunction } from 'express';
-
+import { type NextFunction } from 'express';
 // TODO: Implement controller functions
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
