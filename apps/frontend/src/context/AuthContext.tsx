@@ -1,67 +1,16 @@
-/**
- * Authentication Context
- * 
- * Global context for managing authentication state across the app.
- * 
- * Context Value:
- * - user: Current user object { id, email, name, role }
- * - isAuthenticated: Boolean status
- * - isLoading: Initial auth check loading state
- * - login: Login function
- * - signup: Signup function
- * - logout: Logout function
- * - refreshToken: Token refresh function
- * 
- * Features to Implement:
- * 
- * 1. Initial Authentication Check:
- *    - On app load, check for stored token
- *    - Verify token validity (GET /auth/me)
- *    - Set user state if valid
- *    - Clear token if invalid
- * 
- * 2. Login Implementation:
- *    - POST /auth/login
- *    - Store JWT in localStorage/sessionStorage
- *    - Update user state
- *    - Handle errors
- * 
- * 3. Signup Implementation:
- *    - POST /auth/signup
- *    - Auto-login after signup
- *    - Store token and user data
- * 
- * 4. Logout Implementation:
- *    - Clear token from storage
- *    - Reset user state to null
- *    - Optionally call backend logout
- * 
- * 5. Token Management:
- *    - Store in localStorage or httpOnly cookies
- *    - Auto-refresh before expiration
- *    - Handle refresh token rotation
- * 
- * 6. Axios Interceptors:
- *    - Add token to all API requests
- *    - Handle 401 errors (auto-logout)
- *    - Retry failed requests after token refresh
- * 
- * Provider Usage:
- * <AuthProvider>
- *   <App />
- * </AuthProvider>
- * 
- * Hook Usage:
- * const { user, login, logout } = useAuth();
- */
 
-import { createContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, type ReactNode } from 'react';
+import * as authService from '../services/auth.service';
 
 interface User {
   id: string;
   email: string;
   name: string | null;
-  role?: string;
+  googleId?: string | null;
+  totalPoints: number;
+  currentQuestionIndex: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AuthContextType {
@@ -69,6 +18,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  googleLogin: (credential: string) => Promise<void>;
   signup: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
@@ -84,29 +34,64 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // TODO: Initialize auth on mount
   useEffect(() => {
-    // Check for stored token
-    // Verify token validity
-    // Set user state
-    setIsLoading(false);
+    const initAuth = async () => {
+      const token = localStorage.getItem('accessToken');
+      
+      if (token) {
+        try {
+          const data = await authService.getCurrentUser();
+          setUser(data.user);
+        } catch (error) {
+          console.error('Auth initialization error:', error);
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        }
+      }
+      
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
-  // TODO: Implement auth functions
   const login = async (email: string, password: string) => {
-    // Implementation here
+    const data = await authService.login(email, password);
+    localStorage.setItem('accessToken', data.accessToken);
+    if (data.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken);
+    }
+    setUser(data.user);
+  };
+
+  const googleLogin = async (credential: string) => {
+    const data = await authService.googleLogin(credential);
+    localStorage.setItem('accessToken', data.accessToken);
+    if (data.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken);
+    }
+    setUser(data.user);
   };
 
   const signup = async (email: string, password: string, name?: string) => {
-    // Implementation here
+    const data = await authService.signup(email, password, name);
+    localStorage.setItem('accessToken', data.accessToken);
+    if (data.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken);
+    }
+    setUser(data.user);
   };
 
   const logout = async () => {
-    // Implementation here
+    await authService.logout();
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    setUser(null);
   };
 
-  const refreshToken = async () => {
-    // Implementation here
+  const refreshTokenFn = async () => {
+    const data = await authService.refreshAccessToken();
+    localStorage.setItem('accessToken', data.accessToken);
   };
 
   return (
@@ -116,9 +101,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isAuthenticated: !!user,
         isLoading,
         login,
+        googleLogin,
         signup,
         logout,
-        refreshToken
+        refreshToken: refreshTokenFn
       }}
     >
       {children}

@@ -1,19 +1,3 @@
-/**
- * Authentication Service
- * 
- * API calls for authentication operations.
- * 
- * Functions:
- * - login(email, password): User login
- * - signup(email, password, name): User registration
- * - logout(): User logout
- * - getCurrentUser(): Get current user data
- * - refreshToken(): Refresh JWT token
- * - googleOAuth(): Initiate Google OAuth flow
- * 
- * Each function returns a Promise with typed response data.
- */
-
 import api from '../lib/api';
 
 interface LoginRequest {
@@ -33,24 +17,22 @@ interface AuthResponse {
     id: string;
     email: string;
     name: string | null;
-    role?: string;
+    googleId?: string | null;
+    totalPoints: number;
+    currentQuestionIndex: number;
+    createdAt: string;
+    updatedAt: string;
   };
   accessToken: string;
   refreshToken?: string;
 }
 
-// Login with email and password
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>('/auth/login', { email, password });
   return response.data;
 };
 
-// Register new user
-export const signup = async (
-  email: string,
-  password: string,
-  name?: string
-): Promise<AuthResponse> => {
+export const signup = async (email: string,password: string,name?: string): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>('/auth/signup', { email, password, name });
   return response.data;
 };
@@ -73,8 +55,8 @@ export const refreshAccessToken = async () => {
   return response.data;
 };
 
-// Initiate Google OAuth
-export const initiateGoogleOAuth = () => {
-  const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-  window.location.href = `${backendUrl}/auth/google`;
+// Google OAuth login
+export const googleLogin = async (credential: string): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>('/auth/google', { credential });
+  return response.data;
 };
