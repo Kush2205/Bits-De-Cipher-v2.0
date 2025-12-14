@@ -38,7 +38,7 @@
  * router.post('/signup', validate(signupSchema), authController.signup);
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { type NextFunction } from 'express';
 
 // TODO: Define validation schemas using Zod or Joi
 

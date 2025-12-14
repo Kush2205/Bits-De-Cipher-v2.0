@@ -57,9 +57,8 @@
  * - Calculate statistics (correct count, total score, time)
  */
 
-import { PrismaClient } from '@repo/database';
+import PrismaClient from '@repo/db/client';
 
-const prisma = new PrismaClient();
 
 // TODO: Implement service functions
 

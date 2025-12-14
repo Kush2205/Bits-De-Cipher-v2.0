@@ -32,7 +32,7 @@
  * - Return comprehensive user statistics
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { type NextFunction } from 'express';
 
 // TODO: Implement controller functions
 

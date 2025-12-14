@@ -1,12 +1,16 @@
-import Input from "./ui/input"
+
 function App() {
- 
   return (
-    <>
-     <h1 className='text-9xl text-center'>This is the frontend</h1>
-     <Input placeholder="Enter text" variant="large" classname="my-custom-class" />
-     </>
-  )
+    <Router>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+        </Routes>
+      </AuthProvider>
+    </Router>
+  );
 }
 
-export default App
+export default App;

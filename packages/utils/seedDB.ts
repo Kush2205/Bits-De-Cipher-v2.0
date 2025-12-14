@@ -1,5 +1,5 @@
 import prisma from "@repo/db/client";
-
+import bcrypt from 'bcrypt';
 
 const seedQuestions = async () => {
     const imgUrl = [
@@ -43,17 +43,19 @@ const seedQuestions = async () => {
 }
 
 const seedUsers = async () => {
-    for (let i = 1; i <= 100; i++) {
+    const hashedPassword = await bcrypt.hash("password123", 10);
+    
+    console.log("Seeding users...");
+    for (let i = 1; i <= 10; i++) {
         await prisma.user.create({
             data: {
-                name: `User ${i + 1}`,
-                email: `user ${i + 1}@gmail.com`,
-                password: `password${i + 1}`,
-                role: "USER",
+                email: `user${i}@example.com`,
+                name: `User ${i}`,
+                passwordHash: hashedPassword,
             }
         })
     }
-
+    console.log(" Created 10 users");
 }
 
 const seedDB = async () => {
