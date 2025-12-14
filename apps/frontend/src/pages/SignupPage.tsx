@@ -69,20 +69,14 @@
  * </div>
  */
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { AuthLayout } from '../components/layout/AuthLayout';
+import { SignupForm } from '../components/auth/SignupForm';
 
 const SignupPage = () => {
-  // TODO: Implement signup logic
-  // TODO: Add password strength validation
-  // TODO: Add OAuth handlers
-  // TODO: Add error handling
-  
   return (
-    <div>
-      <h1>Signup Page</h1>
-      {/* Implementation here */}
-    </div>
+    <AuthLayout>
+      <SignupForm />
+    </AuthLayout>
   );
 };
 

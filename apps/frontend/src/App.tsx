@@ -1,19 +1,29 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { PrivateRoute } from './components/routing/PrivateRoute';
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
+import SignupPage from './pages/SignupPage';
+import ContestPage from './pages/ContestPage';
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route
+            path="/contest"
+            element={
+              <PrivateRoute>
+                <ContestPage />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
-    </Router>
+    </BrowserRouter>
   );
 }
 

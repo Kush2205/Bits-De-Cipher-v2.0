@@ -22,6 +22,7 @@ model User {
   updatedAt              DateTime  @updatedAt
 
   answers                Answer[]
+  hintsUsed              HintUsage[]
 
   @@index([googleId])
 }
@@ -49,11 +50,25 @@ model Question {
   hint2UnlockSec   Int
 
   createdAt        DateTime @default(now())
-
+  hintsUsed       HintUsage[]
   answers          Answer[]
 }
 
+model HintUsage{
+  id          String   @id @default(uuid())
+  userId      String
+  questionId  String
+  usedHint1   Boolean  @default(false)
+  usedHint2   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([questionId])
+}
 
 model Answer {
   id              String   @id @default(uuid())
@@ -72,7 +87,6 @@ model Answer {
 
   createdAt       DateTime @default(now())
 
-  @@unique([userId, questionId]) 
   @@index([questionId])
 }
 

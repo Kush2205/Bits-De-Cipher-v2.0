@@ -1,31 +1,5 @@
 import api from '../lib/api';
-
-interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-interface SignupRequest {
-  email: string;
-  password: string;
-  name?: string;
-}
-
-interface AuthResponse {
-  success: boolean;
-  user: {
-    id: string;
-    email: string;
-    name: string | null;
-    googleId?: string | null;
-    totalPoints: number;
-    currentQuestionIndex: number;
-    createdAt: string;
-    updatedAt: string;
-  };
-  accessToken: string;
-  refreshToken?: string;
-}
+import type { AuthResponse } from '../types/user.types';
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>('/auth/login', { email, password });
