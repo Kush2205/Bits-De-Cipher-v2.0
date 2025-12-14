@@ -21,13 +21,14 @@ model User {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
   userAnswers            UserQuestionAnswer[]
+  hintsData              UserHintsData[]
   @@index([googleId])
 }
 
 
 model Question {
   id          Int               @id @default(autoincrement())
-  name        String                @unique
+  name        String                
   imageUrl    String?
   points      Int                   
   maxPoints   Int                   
@@ -35,18 +36,31 @@ model Question {
   updatedAt   DateTime              @updatedAt
   userAnswers UserQuestionAnswer[]
   hints       Hint[]
+  hintsData   UserHintsData[]
   @@index([name])
 }
 
 model Hint{
   id           Int       @id @default(autoincrement())
+  name         String    
   questionId   Int
   hintText  String    @default("")
-  used      Boolean?     @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now())
   usedAt    DateTime?
   question  Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model UserHintsData{
+  id           Int         @id @default(autoincrement())
+  userId       String
+  questionId   Int
+  hint1Used    Boolean     @default(false)
+  hint2Used    Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question     Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
 model UserQuestionAnswer {
