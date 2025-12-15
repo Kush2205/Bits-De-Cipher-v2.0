@@ -31,7 +31,8 @@ model Question {
   name        String                
   imageUrl    String?
   points      Int                   
-  maxPoints   Int                   
+  maxPoints   Int
+  coreectAnswer  String         @default("answer")                   
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
   userAnswers UserQuestionAnswer[]
@@ -76,7 +77,7 @@ model UserQuestionAnswer {
   usedHint2       Boolean  @default(false)
   createdAt       DateTime @default(now())
 
-  @@unique([userId, questionId]) 
+   
   @@index([questionId])
 }
 
