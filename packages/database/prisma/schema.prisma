@@ -32,7 +32,7 @@ model Question {
   imageUrl    String?
   points      Int                   
   maxPoints   Int
-  coreectAnswer  String         @default("answer")                   
+  correctAnswer  String         @default("answer")                   
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
   userAnswers UserQuestionAnswer[]
