@@ -55,22 +55,6 @@ const seedQuestions = async () => {
 
 const seedUsers = async () => {
     const hashedPassword = await bcrypt.hash("password123", 10);
-<<<<<<< HEAD
-    
-    console.log("Seeding users...");
-    for (let i = 1; i <= 10; i++) {
-        await prisma.user.upsert({
-            where: { email: `user${i}@example.com` },
-            update: {},
-            create: {
-                name: `User ${i}`,
-                email: `user${i}@example.com`,
-                passwordHash: hashedPassword,
-            }
-        });
-    }
-    console.log(" Created/Updated 10 users");
-=======
     const questions = await prisma.question.findMany();
     console.log("Seeding users...");
     
@@ -91,7 +75,6 @@ const seedUsers = async () => {
         });
     }
     console.log("Created 10 users");
->>>>>>> 81998f18b562b27e082389aeb97d3fc330a258a4
 }
 
 const seedDB = async () => {
@@ -107,8 +90,4 @@ seedDB().catch((e) => {
     process.exit(1);
 }).finally(async () => {
     await prisma.$disconnect();
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 81998f18b562b27e082389aeb97d3fc330a258a4
