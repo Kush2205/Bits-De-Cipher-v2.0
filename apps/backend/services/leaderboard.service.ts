@@ -49,9 +49,8 @@
  * - Use database views for complex aggregations
  */
 
-import { PrismaClient } from '@repo/database';
+import PrismaClient  from '@repo/db/client';
 
-const prisma = new PrismaClient();
 
 // TODO: Implement service functions
 

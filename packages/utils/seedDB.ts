@@ -1,5 +1,19 @@
 import prisma from "@repo/db/client";
 import bcrypt from 'bcrypt';
+<<<<<<< HEAD
+=======
+
+const clearDatabase = async () => {
+    console.log("Clearing existing data...");
+    
+    await prisma.userQuestionAnswer.deleteMany({});
+    await prisma.userHintsData.deleteMany({});
+    await prisma.user.deleteMany({});
+    await prisma.hint.deleteMany({});
+    await prisma.question.deleteMany({});
+    console.log("Database cleared.");
+}
+>>>>>>> 81998f18b562b27e082389aeb97d3fc330a258a4
 
 const seedQuestions = async () => {
     const questions = [
@@ -166,6 +180,7 @@ const seedQuestions = async () => {
     ];
 
     console.log("Seeding questions...");
+<<<<<<< HEAD
     for (const question of questions) {
         await prisma.question.upsert({
             where: { index: question.index },
@@ -174,10 +189,38 @@ const seedQuestions = async () => {
         });
     }
     console.log(` Created/Updated ${questions.length} questions`);
+=======
+    
+    
+    for (let index = 0; index < imgUrl.length; index++) {
+        await prisma.question.create({
+            data: {
+                name: `Question ${index + 1}`,
+                imageUrl: imgUrl[index],
+                points: 500,
+                maxPoints: 500,
+                hints: {
+                    create: [
+                        {
+                            hintText: `This is hint 1 for question ${index + 1}`,
+                            name: `Hint 1`
+                        },
+                        {
+                            hintText: `This is hint 2 for question ${index + 1}`,
+                            name: `Hint 2`
+                        }
+                    ]
+                }
+            }
+        });
+    }
+    console.log(`Created ${imgUrl.length} questions with hints.`);
+>>>>>>> 81998f18b562b27e082389aeb97d3fc330a258a4
 }
 
 const seedUsers = async () => {
     const hashedPassword = await bcrypt.hash("password123", 10);
+<<<<<<< HEAD
     
     console.log("Seeding users...");
     for (let i = 1; i <= 10; i++) {
@@ -192,18 +235,45 @@ const seedUsers = async () => {
         });
     }
     console.log(" Created/Updated 10 users");
+=======
+    const questions = await prisma.question.findMany();
+    console.log("Seeding users...");
+    
+    for (let i = 1; i <= 10; i++) {
+        await prisma.user.create({
+            data: {
+                email: `user${i}@example.com`,
+                name: `User ${i}`,
+                passwordHash: hashedPassword,
+                hintsData: {
+                    createMany: {
+                        data: questions.map(q => ({
+                            questionId: q.id
+                        }))
+                    }
+                }
+            }
+        });
+    }
+    console.log("Created 10 users");
+>>>>>>> 81998f18b562b27e082389aeb97d3fc330a258a4
 }
 
 const seedDB = async () => {
-    console.log("Seeding database...");
+    console.log("Starting database seeding...");
+    await clearDatabase();
     await seedQuestions();
     await seedUsers();
-    console.log("Database seeded successfully.");
+    console.log("Database seeded successfully!");
 }
 
 seedDB().catch((e) => {
-    console.error(e);
+    console.error("Error seeding database:", e);
     process.exit(1);
 }).finally(async () => {
     await prisma.$disconnect();
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 81998f18b562b27e082389aeb97d3fc330a258a4

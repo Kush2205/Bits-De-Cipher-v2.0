@@ -1,5 +1,5 @@
 {
-  "name": "Bits_De_Cipher_v2.0",
+  "name": "Bits-De-Cipher-v2.0",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -9,9 +9,9 @@
     "check-types": "turbo run check-types",
     "prisma:generate": "cd packages/database && bun prisma generate",
     "prisma:migrate": "cd packages/database && bun prisma migrate dev",
-    "seed:db" : "bun run packages/utils/seedDB.ts",
-    "reset:db" : "cd packages/database && bun prisma migrate reset --force",
-    "start:db" : "docker run -d -p 5432:5432 --name bits_de_cipher_db -e POSTGRES_PASSWORD=postgres postgres && sleep 5 && bun prisma:migrate && bun seed:db"
+    "seed:db": "bun run packages/utils/seedDB.ts",
+    "reset:db": "cd packages/database && bun prisma migrate reset --force",
+    "start:db": "docker run -d -p 5432:5432 --name bits_de_cipher_db -e POSTGRES_PASSWORD=postgres postgres && sleep 5 && bun prisma:migrate && bun seed:db"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
@@ -25,5 +25,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "axios": "^1.13.2"
+  }
 }
