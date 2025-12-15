@@ -25,8 +25,8 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { email, password, name } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required' });
+    if (!email || !password || !name) {
+      return res.status(400).json({ success: false, message: 'Email, Password and Name are required' });
     }
 
     const existingUser = await authService.findUserByEmail(email);
@@ -66,7 +66,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     }
 
     if (!user.passwordHash) {
-      return res.status(401).json({ success: false, message: 'Please use Google login' });
+      return res.status(401).json({ success: false, message: 'No valid account found' });
     }
 
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);

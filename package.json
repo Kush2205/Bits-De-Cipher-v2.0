@@ -1,5 +1,5 @@
 {
-  "name": "Bits_De_Cipher_v2.0",
+  "name": "Bits-De-Cipher-v2.0",
   "private": true,
   "scripts": {
     "build": "turbo run build",

@@ -45,7 +45,7 @@
 //  * - Used for password reset flow
 //  */
 
-import prisma  from '@repo/db/client';
+import prisma from '@repo/db/client';
 
 
 export const createUser = async (email: string, hashedPassword: string, name?: string) => {
@@ -106,7 +106,7 @@ export const findOrCreateOAuthUser = async (
   profile: { id: string; email: string; name?: string; picture?: string },
   provider: 'google'
 ) => {
-  // To check if user exists with this googleId
+
   let user = await prisma.user.findUnique({
     where: { googleId: profile.id },
     select: {
@@ -125,13 +125,13 @@ export const findOrCreateOAuthUser = async (
     return user;
   }
 
-  //To check if user exists with this email
+
   const existingUser = await prisma.user.findUnique({
     where: { email: profile.email },
   });
 
   if (existingUser) {
-    // Link Google account to existing user
+
     user = await prisma.user.update({
       where: { id: existingUser.id },
       data: { googleId: profile.id },
@@ -149,13 +149,13 @@ export const findOrCreateOAuthUser = async (
     return user;
   }
 
-  // Create new user
+
   user = await prisma.user.create({
     data: {
       email: profile.email,
       name: profile.name,
       googleId: profile.id,
-      passwordHash: null, 
+      passwordHash: null,
     },
     select: {
       id: true,
