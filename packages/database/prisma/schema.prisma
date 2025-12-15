@@ -20,59 +20,64 @@ model User {
   currentQuestionIndex   Int       @default(0)
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
-
-  answers                Answer[]
-
+  userAnswers            UserQuestionAnswer[]
+  hintsData              UserHintsData[]
   @@index([googleId])
 }
 
 
 model Question {
-  id               String   @id @default(uuid())
-
-  index            Int      @unique
-  text             String
-  imageUrl         String?  
-  correctAnswer    String  
-
-  originalPoints   Int
-  currentPoints    Int
-  minPoints        Int
-  decayPercent     Float    
-
-  hint1Text        String?
-  hint2Text        String?
-  hint1Penalty     Float    
-  hint2Penalty     Float    
-
-  hint1UnlockSec   Int      
-  hint2UnlockSec   Int
-
-  createdAt        DateTime @default(now())
-
-  answers          Answer[]
+  id          Int               @id @default(autoincrement())
+  name        String                
+  imageUrl    String?
+  points      Int                   
+  maxPoints   Int
+  correctAnswer  String         @default("answer")                   
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  userAnswers UserQuestionAnswer[]
+  hints       Hint[]
+  hintsData   UserHintsData[]
+  @@index([name])
 }
 
+model Hint{
+  id           Int       @id @default(autoincrement())
+  name         String    
+  questionId   Int
+  hintText  String    @default("")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  usedAt    DateTime?
+  question  Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
 
+model UserHintsData{
+  id           Int         @id @default(autoincrement())
+  userId       String
+  questionId   Int
+  hint1Used    Boolean     @default(false)
+  hint2Used    Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question     Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
 
-model Answer {
-  id              String   @id @default(uuid())
+model UserQuestionAnswer {
+  id              Int   @id @default(autoincrement())
   userId          String
-  questionId      String
-
+  questionId      Int
   user            User     @relation(fields: [userId], references: [id])
   question        Question @relation(fields: [questionId], references: [id])
-
   submittedText   String
   isCorrect       Boolean
   awardedPoints   Int
-
   usedHint1       Boolean  @default(false)
   usedHint2       Boolean  @default(false)
-
   createdAt       DateTime @default(now())
 
-  @@unique([userId, questionId]) 
+   
   @@index([questionId])
 }
 

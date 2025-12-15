@@ -49,15 +49,27 @@
  * - Use database views for complex aggregations
  */
 
-import { PrismaClient } from '@repo/database';
+import prisma from '@repo/db/client';
 
-const prisma = new PrismaClient();
 
 // TODO: Implement service functions
 
 export const getGlobalLeaderboard = async (limit: number = 100) => {
-  // Implementation here
+  const leaderboard = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      totalPoints: true,
+    },
+    orderBy: {
+      totalPoints: "desc",
+    },
+    take: limit,
+  });
+
+  return leaderboard;
 };
+
 
 export const getQuizLeaderboard = async (quizId: string, limit: number = 100) => {
   // Implementation here
@@ -72,5 +84,27 @@ export const getUserGlobalRank = async (userId: string) => {
 };
 
 export const getUserStats = async (userId: string) => {
-  // Implementation here
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      totalPoints: true,                                                                
+      currentQuestionIndex: true,                                
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+
+  return {
+    userId: user.id,
+    name: user.name,
+    totalPoints: user.totalPoints,
+    currentQuestionIndex: user.currentQuestionIndex,
+  };
 };
+

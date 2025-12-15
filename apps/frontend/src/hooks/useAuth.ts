@@ -55,20 +55,14 @@
  */
 
 import { useContext } from 'react';
-// import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 
 export const useAuth = () => {
-  // TODO: Get context from AuthContext
-  // TODO: Throw error if used outside provider
-  // TODO: Return auth methods and state
+  const context = useContext(AuthContext);
   
-  return {
-    user: null,
-    isAuthenticated: false,
-    isLoading: false,
-    login: async (email: string, password: string) => {},
-    signup: async (email: string, password: string, name?: string) => {},
-    logout: async () => {},
-    refreshToken: async () => {}
-  };
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  
+  return context;
 };

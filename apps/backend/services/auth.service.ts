@@ -45,30 +45,153 @@
  * - Used for password reset flow
  */
 
-import prisma from "@repo/db/client"
+import prisma from '@repo/db/client';
 
-// TODO: Implement service functions
 
 export const createUser = async (email: string, hashedPassword: string, name?: string) => {
-  // Implementation here
+  try {
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash: hashedPassword,
+        name,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        googleId: true,
+        totalPoints: true,
+        currentQuestionIndex: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+    return user;
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      throw new Error('Email already exists');
+    }
+    throw error;
+  }
 };
+
 
 export const findUserByEmail = async (email: string) => {
-  // Implementation here
+  return await prisma.user.findUnique({
+    where: { email },
+  });
 };
+
 
 export const findUserById = async (id: string) => {
-  // Implementation here
+  return await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      googleId: true,
+      totalPoints: true,
+      currentQuestionIndex: true,
+      createdAt: true,
+      updatedAt: true,
+    }
+  });
 };
 
-export const findOrCreateOAuthUser = async (profile: any, provider: string) => {
-  // Implementation here
+
+export const findOrCreateOAuthUser = async (
+  profile: { id: string; email: string; name?: string; picture?: string },
+  provider: 'google'
+) => {
+
+  let user = await prisma.user.findUnique({
+    where: { googleId: profile.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      googleId: true,
+      totalPoints: true,
+      currentQuestionIndex: true,
+      createdAt: true,
+      updatedAt: true,
+    }
+  });
+
+  if (user) {
+    return user;
+  }
+
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: profile.email },
+  });
+
+  if (existingUser) {
+
+    user = await prisma.user.update({
+      where: { id: existingUser.id },
+      data: { googleId: profile.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        googleId: true,
+        totalPoints: true,
+        currentQuestionIndex: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+    return user;
+  }
+
+
+  user = await prisma.user.create({
+    data: {
+      email: profile.email,
+      name: profile.name,
+      googleId: profile.id,
+      passwordHash: null,
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      googleId: true,
+      totalPoints: true,
+      currentQuestionIndex: true,
+      createdAt: true,
+      updatedAt: true,
+    }
+  });
+
+  return user;
 };
 
-export const updateUser = async (id: string, data: any) => {
-  // Implementation here
+export const updateUser = async (id: string, data: { name?: string }) => {
+  return await prisma.user.update({
+    where: { id },
+    data,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      googleId: true,
+      totalPoints: true,
+      currentQuestionIndex: true,
+      createdAt: true,
+      updatedAt: true,
+    }
+  });
 };
+
 
 export const updatePassword = async (id: string, newHashedPassword: string) => {
-  // Implementation here
+  return await prisma.user.update({
+    where: { id },
+    data: { passwordHash: newHashedPassword },
+  });
 };
