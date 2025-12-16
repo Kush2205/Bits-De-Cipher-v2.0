@@ -43,7 +43,7 @@ export const getGlobalLeaderboard = async (
 ) => {
   try {
     const rawLimit = Number(req.query.limit);
-    const limit = rawLimit > 0 ? rawLimit : undefined;
+    const limit = rawLimit > 0 ? rawLimit : 10;
 
     const leaderBoard = await leaderboardServices.getGlobalLeaderboard(limit);
 
