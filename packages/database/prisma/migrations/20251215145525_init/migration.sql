@@ -21,6 +21,7 @@ CREATE TABLE "Question" (
     "imageUrl" TEXT,
     "points" INTEGER NOT NULL,
     "maxPoints" INTEGER NOT NULL,
+    "correctAnswer" TEXT NOT NULL DEFAULT 'answer',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -30,14 +31,27 @@ CREATE TABLE "Question" (
 -- CreateTable
 CREATE TABLE "Hint" (
     "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
     "questionId" INTEGER NOT NULL,
     "hintText" TEXT NOT NULL DEFAULT '',
-    "used" BOOLEAN DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "usedAt" TIMESTAMP(3),
 
     CONSTRAINT "Hint_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserHintsData" (
+    "id" SERIAL NOT NULL,
+    "userId" TEXT NOT NULL,
+    "questionId" INTEGER NOT NULL,
+    "hint1Used" BOOLEAN NOT NULL DEFAULT false,
+    "hint2Used" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "UserHintsData_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -65,19 +79,19 @@ CREATE UNIQUE INDEX "User_googleId_key" ON "User"("googleId");
 CREATE INDEX "User_googleId_idx" ON "User"("googleId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Question_name_key" ON "Question"("name");
-
--- CreateIndex
 CREATE INDEX "Question_name_idx" ON "Question"("name");
 
 -- CreateIndex
 CREATE INDEX "UserQuestionAnswer_questionId_idx" ON "UserQuestionAnswer"("questionId");
 
--- CreateIndex
-CREATE UNIQUE INDEX "UserQuestionAnswer_userId_questionId_key" ON "UserQuestionAnswer"("userId", "questionId");
-
 -- AddForeignKey
 ALTER TABLE "Hint" ADD CONSTRAINT "Hint_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserHintsData" ADD CONSTRAINT "UserHintsData_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserHintsData" ADD CONSTRAINT "UserHintsData_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserQuestionAnswer" ADD CONSTRAINT "UserQuestionAnswer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

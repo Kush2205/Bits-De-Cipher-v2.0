@@ -25,9 +25,13 @@
  */
 
 import { Router } from 'express';
+import * as leaderboardController from '../controllers/leaderboard.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // TODO: Implement routes here
+router.get("/global" , authenticate , leaderboardController.getGlobalLeaderboard);
+router.get("/userstats" , authenticate , leaderboardController.getUserStats);
 
 export default router;

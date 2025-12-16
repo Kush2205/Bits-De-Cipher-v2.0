@@ -81,4 +81,3 @@ model UserQuestionAnswer {
   @@index([questionId])
 }
 
-
