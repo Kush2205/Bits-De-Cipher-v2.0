@@ -83,7 +83,7 @@ export const signupSchema = z.object({
 
     password: z
       .string()
-      .min(8, "Minimum 8 characters")
+      .min(6, "Minimum 6 characters")
       .regex(/[A-Z]/, "One uppercase required")
       .regex(/[0-9]/, "One number required")
       .regex(/[^A-Za-z0-9]/, "One special character required"),
