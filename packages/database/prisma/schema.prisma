@@ -41,7 +41,7 @@ model Question {
   @@index([name])
 }
 
-model Hint{
+model Hint {
   id           Int       @id @default(autoincrement())
   name         String    
   questionId   Int
