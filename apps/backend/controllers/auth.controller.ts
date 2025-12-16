@@ -219,11 +219,5 @@ export const logout = async (req: Request, res: Response) => {
 
 export const signup = [validate(signupSchema), signupHandler];
 export const login = [validate(loginSchema), loginHandler];
-export const googleLogin = [
-  validate(googleLoginSchema),
-  googleLoginHandler,
-];
-export const refreshToken = [
-  validate(refreshTokenSchema),
-  refreshTokenHandler,
-];
+export const googleLogin = [validate(googleLoginSchema),googleLoginHandler];
+export const refreshToken = [validate(refreshTokenSchema),refreshTokenHandler];
