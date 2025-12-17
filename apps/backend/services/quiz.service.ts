@@ -39,8 +39,10 @@ export const fetchQuestionDetailsByIndex = async (index: number) => {
 };
 
 export const getUserHintsData = async (userId: string , questionId : number) => {
-
+   // TODO -> Implement this function to fetch hints data used by the user for a particular question
 };
+
+
 
 
 

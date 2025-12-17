@@ -59,6 +59,7 @@ class QuizSocket {
 
     private async parseQuestionPoints(questionData: any , userId: string) {
         if (!questionData) return 0;
+        //TODO -> Fetch hints data and calculate points accordingly
     }
     
 
