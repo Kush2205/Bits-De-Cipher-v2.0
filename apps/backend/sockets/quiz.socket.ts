@@ -2,14 +2,14 @@ import { Server, Socket } from "socket.io";
 import HTTPServer from "http";
 import { socketAuthMiddleware } from "../middleware/socketAuth.middleware";
 import * as quizService from "../services/quiz.service";
+import { use } from "react";
 
 
-class QuizSocket {
+export class QuizSocket {
 
     public io: Server;
     private jwtSecret: string = process.env.JWT_SECRET || "secret";
-    private userId: string | null = null;
-
+    
     constructor(server: HTTPServer.Server) {
         this.io = new Server(server, {
             cors: {
@@ -18,20 +18,23 @@ class QuizSocket {
             },
         });
         this.io.use((socket, next) => socketAuthMiddleware(socket, next));
+        
 
     }
 
     public initializeSockets() {
         this.io.on("connection", (socket) => {
-            console.log(`New client connected: ${socket.id}`);
-            this.userId = socket.data.userId;
+            
+            const userId = socket.data.userId;
 
             socket.on("joinQuiz", async () => {
-                const userStats = await quizService.getUserStats(this.userId!);
+                
+                const userStats = await quizService.getUserStats(userId!);
                 if (!userStats) {
                     socket.emit("error", { message: "User not found" });
                     return;
                 }
+                console.log(userStats);
                 this.sendInitialData(socket, userStats);
             });
 
@@ -42,8 +45,8 @@ class QuizSocket {
 
     private async sendInitialData(socket: Socket, userStats: any) {
         const { currentQuestionIndex, totalPoints } = userStats;
-        const currQuestionData = quizService.fetchQuestionDetailsByIndex(currentQuestionIndex);
-        const leaderBoardData = await quizService.fetchLeaderboardData();
+        const currQuestionData = await quizService.fetchQuestionDetailsByIndex(currentQuestionIndex+1);
+        const leaderBoardData = await quizService.fetchLeaderboardData(10);
         socket.emit("initialData", {
             currentQuestion: currQuestionData,
             currUserPoints: totalPoints,
@@ -53,7 +56,7 @@ class QuizSocket {
     }
 
     private async fetchAndEmitLeaderboardData(socket: Socket) {
-        const leaderBoardData = await quizService.fetchLeaderboardData();
+        const leaderBoardData = await quizService.fetchLeaderboardData(10);
         socket.emit("leaderboardData", leaderBoardData);
     }
 

@@ -32,7 +32,7 @@
  * - Return comprehensive user statistics
  */
 import type { Request, Response, NextFunction } from 'express';
-import * as leaderboardServices from "../services/leaderboard.service"
+import * as leaderboardServices from "../services/quiz.service";
 
 // TODO: Implement controller functions
 //user fetch + jwt auth
@@ -45,7 +45,7 @@ export const getGlobalLeaderboard = async (
     const rawLimit = Number(req.query.limit);
     const limit = rawLimit > 0 ? rawLimit : 10;
 
-    const leaderBoard = await leaderboardServices.getGlobalLeaderboard(limit);
+    const leaderBoard = await leaderboardServices.fetchLeaderboardData(limit);
 
     res.status(200).json({
       success: true,
