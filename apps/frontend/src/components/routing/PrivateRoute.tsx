@@ -21,3 +21,5 @@ export const PrivateRoute = ({ children }: PrivateRouteProps) => {
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
+
+export default PrivateRoute;

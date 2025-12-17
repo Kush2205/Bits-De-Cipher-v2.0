@@ -1,71 +1,50 @@
-/**
- * Quiz Service
- * 
- * API calls for quiz-related operations.
- * 
- * Functions:
- * - getQuizzes(page, limit): Fetch available quizzes
- * - getQuizById(id): Get specific quiz details
- * - startQuizSession(quizId): Start new quiz session
- * - submitAnswer(sessionId, answer): Submit quiz answer
- * - getSessionResults(sessionId): Get quiz results
- * 
- * Each function returns a Promise with typed response data.
- */
-
 import api from '../lib/api';
 
-interface Quiz {
+export interface QuestionPayload {
   id: string;
-  title: string;
-  description: string | null;
-  questionCount: number;
-  duration: number;
-  isPublished: boolean;
+  index: number;
+  text: string;
+  imageUrl?: string | null;
+  originalPoints: number;
+  currentPoints: number;
+  minPoints: number;
+  decayPercent: number;
+  hint1Text?: string | null;
+  hint2Text?: string | null;
+  hint1Penalty?: number | null;
+  hint2Penalty?: number | null;
+  hint1UnlockSec?: number | null;
+  hint2UnlockSec?: number | null;
 }
 
-interface QuizSession {
-  id: string;
-  quizId: string;
-  startedAt: Date;
-  status: 'in_progress' | 'completed';
-}
+export const getCurrentQuestion = async () => {
+  const response = await api.get<{ question: QuestionPayload | null }>('/quiz/current');
+  return response.data;
+};
 
-interface AnswerSubmission {
-  sessionId: string;
+export const submitAnswer = async (data: {
   questionId: string;
-  selectedOption: number;
-  timeTaken: number;
-}
-
-// Fetch all available quizzes
-export const getQuizzes = async (page: number = 1, limit: number = 10) => {
-  const response = await api.get('/quiz/list', {
-    params: { page, limit }
-  });
-  return response.data;
+  submittedText: string;
+  usedHint1?: boolean;
+  usedHint2?: boolean;
+}) => {
+  const response = await api.post('/quiz/answer', data);
+  return response.data as {
+    isCorrect: boolean;
+    awardedPoints: number;
+    alreadyCompleted: boolean;
+  };
 };
 
-// Get specific quiz details
-export const getQuizById = async (quizId: string) => {
-  const response = await api.get(`/quiz/${quizId}`);
-  return response.data;
-};
-
-// Start new quiz session
-export const startQuizSession = async (quizId: string): Promise<QuizSession> => {
-  const response = await api.post(`/quiz/${quizId}/start`);
-  return response.data;
-};
-
-// Submit answer for current question
-export const submitAnswer = async (data: AnswerSubmission) => {
-  const response = await api.post(`/quiz/session/${data.sessionId}/submit`, data);
-  return response.data;
-};
-
-// Get quiz session results
-export const getSessionResults = async (sessionId: string) => {
-  const response = await api.get(`/quiz/session/${sessionId}/results`);
-  return response.data;
+export const getLeaderboard = async (limit = 15) => {
+  const response = await api.get('/quiz/leaderboard', { params: { limit } });
+  return response.data as {
+    leaderboard: Array<{
+      id: string;
+      name: string | null;
+      email: string;
+      totalPoints: number;
+      currentQuestionIndex: number;
+    }>;
+  };
 };

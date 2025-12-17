@@ -14,8 +14,7 @@ const api = axios.create({
 // Request interceptor - Add auth token
 api.interceptors.request.use(
   (config) => {
-    // TODO: Get token from storage
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -35,16 +34,11 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    // TODO: Handle different error types
-    
     // 401 Unauthorized - Token expired or invalid
     if (error.response?.status === 401) {
-      // TODO: Attempt token refresh
-      // TODO: Logout if refresh fails
+      // TODO: Attempt token refresh and retry
     }
-    
-    // TODO: Handle other error codes
-    
+
     return Promise.reject(error);
   }
 );
