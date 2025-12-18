@@ -28,6 +28,7 @@ const seedQuestions = async () => {
 
     console.log("Seeding questions...");
     
+    
     for (let index = 0; index < imgUrl.length; index++) {
         await prisma.question.create({
             data: {
