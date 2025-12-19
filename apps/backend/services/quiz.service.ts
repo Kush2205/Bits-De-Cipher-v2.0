@@ -7,7 +7,7 @@ const HINT2_PENALTY = 0.3;
 const DECAY_RATE = 0.04; 
 
 export const getUserStats = async (userId: string) => {
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -17,6 +17,19 @@ export const getUserStats = async (userId: string) => {
       currentQuestionIndex: true,
     },
   });
+
+  if (!user) return null;
+
+  // Add answeredQuestionsCount
+  const answeredQuestions = await prisma.userQuestionAnswer.groupBy({
+    by: ['questionId'],
+    where: { userId },
+  });
+
+  return {
+    ...user,
+    answeredQuestionsCount: answeredQuestions.length,
+  };
 };
 
 export const getQuestionByIndex = async (index: number) => {
@@ -72,17 +85,13 @@ export const submitAnswer = async (opts: {
   usedHint1?: boolean;
   usedHint2?: boolean;
 }) => {
-  const { userId, questionId, submittedText } = opts;
+  const { userId, questionId, submittedText, usedHint1 = false, usedHint2 = false } = opts;
 
   const result = await prisma.$transaction(async (tx) => {
     const question = await tx.question.findUnique({ where: { id: questionId } });
     if (!question) throw new Error('Question not found');
 
     const minPoints = Math.floor(question.maxPoints * 0.5);
-
-    const hintUsage = await tx.userHintsData.findFirst({ where: { userId, questionId } });
-    const usedHint1 = hintUsage?.hint1Used ;
-    const usedHint2 = hintUsage?.hint2Used;
 
     const alreadyCorrect = Boolean(
       await tx.userQuestionAnswer.findFirst({
@@ -93,10 +102,11 @@ export const submitAnswer = async (opts: {
 
     let awardedPoints = 0;
     if (!alreadyCorrect && isCorrect) {
+      // Always calculate points from maxPoints (500), not decayed points
       let penalty = 0;
       if (usedHint1) penalty += HINT1_PENALTY;
       if (usedHint2) penalty += HINT2_PENALTY;
-      awardedPoints = Math.max(minPoints, Math.floor(question.points * (1 - penalty)));
+      awardedPoints = Math.max(minPoints, Math.floor(question.maxPoints * (1 - penalty)));
     }
 
     await tx.userQuestionAnswer.create({
@@ -150,6 +160,28 @@ export const submitAnswer = async (opts: {
   return result;
 };
 
+export const getHintsForQuestion = async (questionId: number) => {
+  return prisma.hint.findMany({
+    where: { questionId },
+    select: {
+      id: true,
+      name: true,
+      hintText: true,
+    },
+    orderBy: { id: 'asc' },
+  });
+};
+
+export const getUserHintUsage = async (userId: string, questionId: number) => {
+  return prisma.userHintsData.findFirst({
+    where: { userId, questionId },
+    select: {
+      hint1Used: true,
+      hint2Used: true,
+    },
+  });
+};
+
 export const getTopLeaderboard = async (limit = 15) => {
   return prisma.user.findMany({
     orderBy: [{ totalPoints: 'desc' }, { createdAt: 'asc' }],
@@ -162,6 +194,60 @@ export const getTopLeaderboard = async (limit = 15) => {
       currentQuestionIndex: true,
     },
   });
+};
+
+export const getUserAnswers = async (userId: string) => {
+  // Get all answers grouped by questionId
+  const allAnswers = await prisma.userQuestionAnswer.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      question: {
+        select: {
+          id: true,
+          name: true,
+          correctAnswer: true,
+          maxPoints: true,
+        },
+      },
+    },
+  });
+
+  // Keep only the latest answer for each question
+  const latestAnswersMap = new Map();
+  allAnswers.forEach(answer => {
+    if (!latestAnswersMap.has(answer.questionId)) {
+      latestAnswersMap.set(answer.questionId, answer);
+    }
+  });
+
+  // Convert back to array and sort by question ID
+  return Array.from(latestAnswersMap.values()).sort((a, b) => a.questionId - b.questionId);
+};
+
+export const getTotalQuestionsCount = async () => {
+  return prisma.question.count();
+};
+
+export const resetUserProgress = async (userId: string) => {
+  await prisma.$transaction([
+    // Delete all user answers
+    prisma.userQuestionAnswer.deleteMany({
+      where: { userId },
+    }),
+    // Delete all hint usage data
+    prisma.userHintsData.deleteMany({
+      where: { userId },
+    }),
+    // Reset user stats
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        totalPoints: 0,
+        currentQuestionIndex: 0,
+      },
+    }),
+  ]);
 };
 
 

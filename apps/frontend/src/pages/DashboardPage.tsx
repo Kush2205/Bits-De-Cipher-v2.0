@@ -59,8 +59,8 @@ const DashboardPage = () => {
             </div>
             
             <div className="bg-purple-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Progress</h3>
-              <p className="text-4xl font-bold text-purple-600">{user.currentQuestionIndex || 0}/10</p>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Questions Answered</h3>
+              <p className="text-4xl font-bold text-purple-600">{(user as any)?.answeredQuestionsCount || 0}/10</p>
             </div>
           </div>
 

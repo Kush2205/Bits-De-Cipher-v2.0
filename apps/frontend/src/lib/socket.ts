@@ -1,130 +1,95 @@
 /**
- * WebSocket Manager
+ * Socket.IO Client Singleton Manager
  * 
- * Utility class for managing Socket.io connections and events.
- * 
- * Features to Implement:
- * 
- * 1. Connection Management:
- *    - Initialize socket connection
- *    - Handle authentication
- *    - Manage connection state
- *    - Implement reconnection logic
- * 
- * 2. Event Emitters:
- *    - Type-safe event emission
- *    - Error handling for emit failures
- *    - Acknowledgment callbacks
- * 
- * 3. Event Listeners:
- *    - Register event handlers
- *    - Remove event listeners
- *    - One-time event listeners
- * 
- * 4. Room Management:
- *    - Join quiz session rooms
- *    - Leave rooms
- *    - Subscribe to channels
- * 
- * 5. Connection Events:
- *    - Handle connect event
- *    - Handle disconnect event
- *    - Handle reconnect event
- *    - Handle error events
- * 
- * Example Usage:
- * import { socketManager } from './lib/socket';
- * 
- * // Connect
- * socketManager.connect(token);
- * 
- * // Join room
- * socketManager.joinQuizSession(sessionId);
- * 
- * // Listen to events
- * socketManager.on('leaderboard-update', (data) => {
- *   updateLeaderboard(data);
- * });
- * 
- * // Emit events
- * socketManager.emit('submit-answer', {
- *   sessionId,
- *   questionId,
- *   selectedOption
- * });
- * 
- * // Cleanup
- * socketManager.disconnect();
+ * Centralized socket management with proper cleanup and reconnection handling.
+ * Integrates with backend socket events from contest.socket.ts
  */
 
-// import { io, Socket } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+let socketInstance: Socket | null = null;
 
-class SocketManager {
-  private socket: any = null;
-  private isConnected: boolean = false;
+/**
+ * Get the current socket instance
+ */
+export const getSocket = (): Socket | null => {
+  return socketInstance;
+};
 
-  // TODO: Initialize connection
-  connect(token: string) {
-    // this.socket = io(SOCKET_URL, {
-    //   auth: { token }
-    // });
-    
-    // Setup event listeners
-    // this.socket.on('connect', this.handleConnect);
-    // this.socket.on('disconnect', this.handleDisconnect);
+/**
+ * Initialize socket connection with JWT token
+ */
+export const initializeSocket = (token: string): Socket => {
+  // Return existing connected socket
+  if (socketInstance?.connected) {
+    return socketInstance;
   }
 
-  // TODO: Disconnect
-  disconnect() {
-    // this.socket?.disconnect();
-    this.isConnected = false;
+  // Disconnect existing socket if not connected
+  if (socketInstance) {
+    socketInstance.disconnect();
   }
 
-  // TODO: Emit event
-  emit(event: string, data?: any, callback?: (response: any) => void) {
-    // this.socket?.emit(event, data, callback);
+  const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+  console.log('🔌 Initializing Socket.IO connection to:', socketUrl);
+
+  socketInstance = io(socketUrl, {
+    extraHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+    autoConnect: true,
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: 5,
+    timeout: 10000,
+  });
+
+  // Log connection events
+  socketInstance.on('connect', () => {
+    console.log('✅ Socket connected:', socketInstance?.id);
+  });
+
+  socketInstance.on('disconnect', (reason: string) => {
+    console.log('🔌 Socket disconnected:', reason);
+  });
+
+  socketInstance.on('connect_error', (error: Error) => {
+    console.error('❌ Socket connection error:', error.message);
+  });
+
+  return socketInstance;
+};
+
+/**
+ * Disconnect and cleanup socket instance
+ */
+export const disconnectSocket = () => {
+  if (socketInstance) {
+    console.log('🔌 Disconnecting socket and cleaning up...');
+    socketInstance.removeAllListeners();
+    socketInstance.disconnect();
+    socketInstance = null;
   }
+};
 
-  // TODO: Listen to event
-  on(event: string, handler: (data: any) => void) {
-    // this.socket?.on(event, handler);
+/**
+ * Update socket token (e.g., after token refresh)
+ */
+export const updateSocketToken = (token: string) => {
+  if (socketInstance) {
+    console.log('🔄 Updating socket token...');
+    socketInstance.io.opts.extraHeaders = {
+      Authorization: `Bearer ${token}`,
+    };
+    socketInstance.disconnect().connect();
   }
+};
 
-  // TODO: Remove listener
-  off(event: string, handler?: (data: any) => void) {
-    // this.socket?.off(event, handler);
-  }
-
-  // TODO: Join quiz session
-  joinQuizSession(sessionId: string) {
-    this.emit('join-quiz-session', { sessionId });
-  }
-
-  // TODO: Subscribe to leaderboard
-  subscribeToLeaderboard(type: 'global' | 'quiz', quizId?: string) {
-    if (type === 'global') {
-      this.emit('subscribe-global-leaderboard');
-    } else if (type === 'quiz' && quizId) {
-      this.emit('subscribe-quiz-leaderboard', { quizId });
-    }
-  }
-
-  // Connection handlers
-  private handleConnect = () => {
-    this.isConnected = true;
-    console.log('Socket connected');
-  };
-
-  private handleDisconnect = () => {
-    this.isConnected = false;
-    console.log('Socket disconnected');
-  };
-
-  getConnectionStatus() {
-    return this.isConnected;
-  }
-}
-
-export const socketManager = new SocketManager();
+/**
+ * Check if socket is connected
+ */
+export const isSocketConnected = (): boolean => {
+  return socketInstance?.connected || false;
+};

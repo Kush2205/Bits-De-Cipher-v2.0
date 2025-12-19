@@ -1,14 +1,47 @@
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 const ContestPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        const data = await response.json();
+        setStats(data.user);
+      } catch (err) {
+        console.error('Failed to fetch user stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, []);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
+
+  const displayUser = stats || user;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-xl text-gray-400">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black">
@@ -37,7 +70,7 @@ const ContestPage = () => {
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm text-gray-400">Welcome back,</p>
-                <p className="text-sm font-medium text-white">{user?.name || user?.email}</p>
+                <p className="text-sm font-medium text-white">{displayUser?.name || displayUser?.email}</p>
               </div>
               <button
                 onClick={handleLogout}
@@ -92,7 +125,7 @@ const ContestPage = () => {
                 <div className="text-sm font-medium text-gray-400">Total Points</div>
               </div>
               <div className="text-3xl font-bold text-green-500">
-                {user?.totalPoints || 0}
+                {displayUser?.totalPoints || 0}
               </div>
             </div>
             
@@ -106,7 +139,7 @@ const ContestPage = () => {
                 <div className="text-sm font-medium text-gray-400">Questions Answered</div>
               </div>
               <div className="text-3xl font-bold text-green-500">
-                {user?.currentQuestionIndex || 0}
+                {(displayUser as any)?.answeredQuestionsCount ?? 0}
               </div>
             </div>
             
@@ -128,23 +161,37 @@ const ContestPage = () => {
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-400">Your Progress</span>
               <span className="text-sm font-medium text-green-500">
-                {user?.currentQuestionIndex || 0} / 10 Questions
+                {(displayUser as any)?.answeredQuestionsCount ?? 0} / 10 Questions
               </span>
             </div>
             <div className="w-full bg-[#2d2d2d] rounded-full h-3 overflow-hidden border border-gray-800">
               <div 
                 className="bg-gradient-to-r from-green-600 to-green-500 h-full rounded-full transition-all duration-500 shadow-lg shadow-green-900/50"
-                style={{ width: `${((user?.currentQuestionIndex || 0) / 10) * 100}%` }}
+                style={{ width: `${(((displayUser as any)?.answeredQuestionsCount ?? 0) / 10) * 100}%` }}
               ></div>
             </div>
           </div>
 
-          {/* CTA Button */}
+          {/* CTA Buttons */}
           <div className="text-center">
-            <button className="px-10 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-xl transition-all shadow-lg shadow-green-900/30 hover:shadow-green-900/50 hover:scale-105">
-              Start Contest
-            </button>
-            <p className="text-sm text-gray-500 mt-4">
+            <div className="flex gap-4 justify-center mb-4">
+              <button 
+                onClick={() => navigate('/quiz')}
+                className="px-10 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-xl transition-all shadow-lg shadow-green-900/30 hover:shadow-green-900/50 hover:scale-105">
+                Start Contest
+              </button>
+              <button 
+                onClick={() => navigate('/results')}
+                className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-xl transition-all shadow-lg shadow-blue-900/30 hover:shadow-blue-900/50">
+                View Results
+              </button>
+              <button 
+                onClick={() => navigate('/leaderboard')}
+                className="px-10 py-4 bg-[#2d2d2d] hover:bg-[#3d3d3d] text-white text-lg font-semibold rounded-xl transition-all border border-gray-700 hover:border-gray-600">
+                Leaderboard
+              </button>
+            </div>
+            <p className="text-sm text-gray-500">
               Answer questions, use hints wisely, and compete in real-time
             </p>
           </div>

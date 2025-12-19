@@ -23,8 +23,23 @@ export const SignupForm = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setError('Password must contain at least one uppercase letter');
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError('Password must contain at least one number');
+      return;
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      setError('Password must contain at least one special character');
       return;
     }
 
@@ -34,18 +49,24 @@ export const SignupForm = () => {
       await signup(email, password, name);
       navigate('/contest');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      const errorMsg = err.response?.data?.error?.message || err.response?.data?.message || 'Signup failed. Please try again.';
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
+    setError('');
+    setIsLoading(true);
     try {
       await googleLogin(credentialResponse.credential);
       navigate('/contest');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Google signup failed.');
+      const errorMsg = err.response?.data?.error?.message || err.response?.data?.message || 'Google signup failed.';
+      setError(errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 

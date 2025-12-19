@@ -19,14 +19,14 @@ export const logout = async (): Promise<void> => {
 // Get current user data
 export const getCurrentUser = async () => {
   const response = await api.get('/auth/me');
-  return response.data;
+  return response.data.user;
 };
 
 // Refresh access token
 export const refreshAccessToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   const response = await api.post('/auth/refresh', { refreshToken });
-  return response.data;
+  return { token: response.data.token };
 };
 
 // Google OAuth login

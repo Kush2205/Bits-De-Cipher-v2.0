@@ -1,6 +1,7 @@
 
 import { createContext, useState, useEffect, type ReactNode } from 'react';
 import * as authService from '../services/auth.service';
+import { disconnectSocket } from '../lib/socket';
 import type { User } from '../types/user.types';
 
 interface AuthContextType {
@@ -12,6 +13,7 @@ interface AuthContextType {
   signup: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,15 +28,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('token');
       
       if (token) {
         try {
           const data = await authService.getCurrentUser();
-          setUser(data.user);
+          setUser(data);
         } catch (error) {
           console.error('Auth initialization error:', error);
-          localStorage.removeItem('accessToken');
+          localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
         }
       }
@@ -47,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (email: string, password: string) => {
     const data = await authService.login(email, password);
-    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('token', data.token);
     if (data.refreshToken) {
       localStorage.setItem('refreshToken', data.refreshToken);
     }
@@ -56,7 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const googleLogin = async (credential: string) => {
     const data = await authService.googleLogin(credential);
-    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('token', data.token);
     if (data.refreshToken) {
       localStorage.setItem('refreshToken', data.refreshToken);
     }
@@ -65,7 +67,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signup = async (email: string, password: string, name?: string) => {
     const data = await authService.signup(email, password, name);
-    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('token', data.token);
     if (data.refreshToken) {
       localStorage.setItem('refreshToken', data.refreshToken);
     }
@@ -73,15 +75,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
-    await authService.logout();
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setUser(null);
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clean up auth state
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      setUser(null);
+      
+      // Disconnect socket connection
+      disconnectSocket();
+    }
   };
 
   const refreshTokenFn = async () => {
     const data = await authService.refreshAccessToken();
-    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('token', data.token);
+  };
+
+  const refreshUser = async () => {
+    try {
+      const data = await authService.getCurrentUser();
+      setUser(data);
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
   };
 
   return (
@@ -94,7 +114,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         googleLogin,
         signup,
         logout,
-        refreshToken: refreshTokenFn
+        refreshToken: refreshTokenFn,
+        refreshUser
       }}
     >
       {children}
