@@ -111,15 +111,23 @@ export const submitAnswer = async (opts: {
       },
     });
 
+    let updatedUser = null;
+    let nextQuestion = null;
+
     if (!alreadyCorrect && isCorrect) {
       const decayed = Math.max(minPoints, Math.floor(question.points * (1 - DECAY_RATE)));
 
-      await Promise.all([
+      const [user] = await Promise.all([
         tx.user.update({
           where: { id: userId },
           data: {
             totalPoints: { increment: awardedPoints },
             currentQuestionIndex: { increment: 1 },
+          },
+          select: {
+            id: true,
+            totalPoints: true,
+            currentQuestionIndex: true,
           },
         }),
         tx.question.update({
@@ -127,12 +135,40 @@ export const submitAnswer = async (opts: {
           data: { points: decayed },
         }),
       ]);
+
+      updatedUser = user;
+
+      const nextQuestions = await tx.question.findMany({
+        orderBy: { id: 'asc' },
+        skip: user.currentQuestionIndex,
+        take: 1,
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+          points: true,
+          maxPoints: true,
+          hints: {
+            select: {
+              id: true,
+              name: true,
+              hintText: true,
+            },
+          },
+          createdAt: true,
+        },
+      });
+
+      nextQuestion = nextQuestions[0] || null;
     }
 
     return {
       isCorrect,
       awardedPoints,
       alreadyCompleted: alreadyCorrect,
+      totalPoints: updatedUser?.totalPoints,
+      currentQuestionIndex: updatedUser?.currentQuestionIndex,
+      nextQuestion,
     };
   });
 
@@ -141,6 +177,7 @@ export const submitAnswer = async (opts: {
       getIO().to('game-room').emit('leaderboard:update', {
         userId: opts.userId,
         awardedPoints: result.awardedPoints,
+        totalPoints: result.totalPoints,
       });
     } catch (err) {
       console.error('Socket emit failed', err);

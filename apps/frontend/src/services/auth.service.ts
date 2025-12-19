@@ -11,25 +11,21 @@ export const signup = async (email: string,password: string,name?: string): Prom
   return response.data;
 };
 
-// Logout user
 export const logout = async (): Promise<void> => {
   await api.post('/auth/logout');
 };
 
-// Get current user data
 export const getCurrentUser = async () => {
   const response = await api.get('/auth/me');
   return response.data;
 };
 
-// Refresh access token
 export const refreshAccessToken = async () => {
   const refreshToken = localStorage.getItem('refreshToken');
   const response = await api.post('/auth/refresh', { refreshToken });
   return response.data;
 };
 
-// Google OAuth login
 export const googleLogin = async (credential: string): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>('/auth/google', { credential });
   return response.data;

@@ -9,7 +9,6 @@ declare global {
   }
 }
 
-
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
