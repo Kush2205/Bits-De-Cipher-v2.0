@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
-import leaderboardRoutes from "./routes/leaderboard.routes"
 import { QuizSocket } from './sockets/quiz.socket';
 import HTTPServer from 'http';
 dotenv.config();
@@ -26,7 +25,7 @@ app.get('/health', (req, res) => {
 
 // Route setup
 app.use('/api/auth', authRoutes);
-app.use('/api/leaderboard', leaderboardRoutes);
+
 
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

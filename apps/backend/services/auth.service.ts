@@ -63,10 +63,18 @@ export const createUser = async (email: string, hashedPassword: string, name?: s
         googleId: true,
         totalPoints: true,
         currentQuestionIndex: true,
-        // createdAt: true,
         updatedAt: true,
       }
     });
+
+    const questions = await prisma.question.findMany();
+    await prisma.userHintsData.createMany({
+        data: questions.map(q => ({
+            userId: user.id,
+            questionId: q.id,
+        }))
+    });
+
     return user;
     
   } catch (error: any) {

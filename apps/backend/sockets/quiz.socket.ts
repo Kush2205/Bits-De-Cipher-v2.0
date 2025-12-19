@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import HTTPServer from "http";
 import { socketAuthMiddleware } from "../middleware/socketAuth.middleware";
 import * as quizService from "../services/quiz.service";
-import { use } from "react";
+
 
 
 export class QuizSocket {
@@ -38,6 +38,10 @@ export class QuizSocket {
                 this.sendInitialData(socket, userStats);
             });
 
+            socket.on("getHint", async (data: { questionId: number, hintNumber: number }) => {
+                await this.handleHintUsage(socket, userId!, data.questionId, data.hintNumber);
+            });
+
             
 
         })
@@ -62,7 +66,17 @@ export class QuizSocket {
 
     private async parseQuestionPoints(questionData: any , userId: string) {
         if (!questionData) return 0;
-        //TODO -> Fetch hints data and calculate points accordingly
+        const hintsData = await quizService.getUserHintsData(userId, questionData.id);
+        const questionPoints = quizService.calculateAwardedPoints(questionData.points, hintsData!);
+        return questionPoints;
+    }
+
+    private async handleHintUsage(socket: Socket, userId: string, questionId: number, hintNumber: number) {
+        const hintData = await quizService.getHints(userId, questionId, hintNumber);
+        const questionData = await quizService.fetchQuestionDetailsByIndex(questionId);
+        const updatedPoints = await this.parseQuestionPoints(questionData, userId);
+        socket.emit("hintData", { hintNumber, hintText: hintData });
+        socket.emit("updatedPoints", updatedPoints);
     }
     
 
