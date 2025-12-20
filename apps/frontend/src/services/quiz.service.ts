@@ -36,6 +36,14 @@ export const submitAnswer = async (data: {
   };
 };
 
+export const useHint = async (data: {
+  questionId: number;
+  hintNumber: 1 | 2;
+}) => {
+  const response = await api.post('/quiz/hint', data);
+  return response.data;
+};
+
 export const getLeaderboard = async (limit = 15) => {
   const response = await api.get('/quiz/leaderboard', { params: { limit } });
   return response.data as {

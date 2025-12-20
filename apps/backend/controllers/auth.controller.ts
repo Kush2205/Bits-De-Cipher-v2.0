@@ -81,7 +81,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
     res.json({
       success: true,
-      userWithoutSensitiveData,
+      user: userWithoutSensitiveData,
       accessToken,
       refreshToken,
     });

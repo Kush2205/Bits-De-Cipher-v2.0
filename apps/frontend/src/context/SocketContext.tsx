@@ -2,67 +2,19 @@
  * Socket Context
  * 
  * Global context for managing WebSocket connections across the app.
- * 
- * Context Value:
- * - socket: Socket.io client instance
- * - isConnected: Connection status boolean
- * - emit: Function to emit events
- * - on: Function to add event listeners
- * - off: Function to remove event listeners
- * 
- * Features to Implement:
- * 
- * 1. Socket Initialization:
- *    - Create socket.io client instance
- *    - Connect to backend WebSocket server
- *    - URL: process.env.VITE_API_URL or http://localhost:3000
- * 
- * 2. Authentication:
- *    - Pass JWT token in connection auth
- *    - socket.io({ auth: { token: jwt } })
- *    - Handle authentication errors
- * 
- * 3. Connection Management:
- *    - Track connection status
- *    - Handle connect/disconnect events
- *    - Implement reconnection logic
- *    - Show connection status to user
- * 
- * 4. Event Handling:
- *    - Wrapper functions for emit/on/off
- *    - Type-safe event names and payloads
- *    - Auto-cleanup listeners on unmount
- * 
- * 5. Error Handling:
- *    - Connection errors
- *    - Authentication failures
- *    - Network timeouts
- * 
- * 6. Cleanup:
- *    - Disconnect socket on unmount
- *    - Remove all event listeners
- * 
- * Provider Usage:
- * <SocketProvider>
- *   <App />
- * </SocketProvider>
- * 
- * Hook Usage:
- * const { socket, isConnected, emit, on } = useSocket();
- * 
- * Dependencies to Install:
- * - socket.io-client
+ * Automatically connects when user is authenticated and token is available.
  */
 
-import { createContext, useState, useEffect, ReactNode, useRef } from 'react';
-// import { io, Socket } from 'socket.io-client';
+import { createContext, useState, useEffect, useRef, type ReactNode } from 'react';
+import { Socket } from 'socket.io-client';
+import { socketManager } from '../lib/socket';
 
 interface SocketContextType {
-  socket: any | null; // Socket type from socket.io-client
+  socket: Socket | null;
   isConnected: boolean;
   emit: (event: string, data?: any) => void;
   on: (event: string, handler: (data: any) => void) => void;
-  off: (event: string, handler: (data: any) => void) => void;
+  off: (event: string, handler?: (data: any) => void) => void;
 }
 
 export const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -73,40 +25,84 @@ interface SocketProviderProps {
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
   const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef<any>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const reconnectTimeoutRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    // TODO: Get JWT token from storage
-    const token = localStorage.getItem('token');
+    // Get JWT token from storage
+    const token = localStorage.getItem('accessToken');
     
-    // TODO: Initialize socket connection
-    // socketRef.current = io(BACKEND_URL, {
-    //   auth: { token }
-    // });
+    if (!token) {
+      console.log('No auth token found, skipping socket connection');
+      return;
+    }
 
-    // TODO: Setup connection event listeners
-    // socketRef.current.on('connect', () => setIsConnected(true));
-    // socketRef.current.on('disconnect', () => setIsConnected(false));
+    // Initialize socket connection with token
+    const socket = socketManager.connect(token);
+    socketRef.current = socket;
+
+    // Setup connection event listeners
+    const handleConnect = () => {
+      console.log('Socket connected in context');
+      setIsConnected(true);
+    };
+
+    const handleDisconnect = (reason: string) => {
+      console.log('Socket disconnected in context:', reason);
+      setIsConnected(false);
+      
+      // Auto-reconnect after disconnect (except when explicitly disconnected by client)
+      if (reason !== 'io client disconnect') {
+        reconnectTimeoutRef.current = window.setTimeout(() => {
+          const token = localStorage.getItem('accessToken');
+          if (token && socketRef.current) {
+            console.log('Attempting to reconnect...');
+            socketRef.current.connect();
+          }
+        }, 2000);
+      }
+    };
+
+    const handleConnectError = (error: Error) => {
+      setIsConnected(false);
+      if (error.message.includes('Authentication')) {
+        console.warn('Socket authentication failed - token may be invalid or expired');
+      } else {
+        console.error('Socket connection error in context:', error.message);
+      }
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleConnectError);
+
+    // Set initial connection status
+    if (socket.connected) {
+      setIsConnected(true);
+    }
 
     // Cleanup on unmount
     return () => {
-      // socketRef.current?.disconnect();
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('connect_error', handleConnectError);
+      socketManager.disconnect();
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
     };
   }, []);
 
   const emit = (event: string, data?: any) => {
-    // TODO: Emit socket event
-    // socketRef.current?.emit(event, data);
+    socketManager.emit(event, data);
   };
 
   const on = (event: string, handler: (data: any) => void) => {
-    // TODO: Add event listener
-    // socketRef.current?.on(event, handler);
+    socketManager.on(event, handler);
   };
 
-  const off = (event: string, handler: (data: any) => void) => {
-    // TODO: Remove event listener
-    // socketRef.current?.off(event, handler);
+  const off = (event: string, handler?: (data: any) => void) => {
+    socketManager.off(event, handler);
   };
 
   return (
