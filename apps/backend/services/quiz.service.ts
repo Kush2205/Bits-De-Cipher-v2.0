@@ -31,16 +31,32 @@ export const getCurrentQuestion = async (userId: string) => {
   const user = await getUserStats(userId);
   if (!user) return null;
 
-  const currentQuestion = await prisma.question.findUnique({
-    where: { id: user.currentQuestionIndex },
+  const questions = await prisma.question.findMany({
+    orderBy: { id: "asc" },
+    skip: user.currentQuestionIndex,
+    take: 1,
     select: {
       id: true,
       name: true,
       imageUrl: true,
       points: true,
+      maxPoints: true,
+      activatedAt : true
     },
   });
-  return currentQuestion;
+
+  const question = questions[0];
+  if(!question) return null;
+
+  if (!question.activatedAt) {
+    await prisma.question.update({
+      where: { id: question.id },
+      data: { activatedAt: new Date() },
+    });
+    question.activatedAt = new Date(); 
+  }
+
+  return question;
 };
 
 export const moveToNextQuestion = async (userId: string) => {
@@ -58,6 +74,38 @@ export const moveToNextQuestion = async (userId: string) => {
 };
 
 
+export const getTimeToUnlock = async (questionId: number): Promise<number> => {
+  const question = await prisma.question.findUnique({
+    where: { id: questionId },
+    select: { activatedAt: true },
+  });
+
+  if (!question || !question.activatedAt) {
+    return -1;
+  }
+
+  const now = Date.now();
+  const unlockTime = question.activatedAt.getTime() + HINT_UNLOCK_DELAY;
+  const remaining = unlockTime - now;
+
+  return Math.max(0, remaining);
+};
+
+const msToHMS = (ms: number) => {
+  if (ms <= 0) {
+    return { hours: 0, minutes: 0, seconds: 0 };
+  }
+
+  const totalSeconds = Math.floor(ms / 1000);
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { hours, minutes, seconds };
+};
+
+
 export const canUseHint = async (
   userId: string,
   questionId: number,
@@ -67,17 +115,15 @@ export const canUseHint = async (
     where: { userId, questionId },
   });
 
-  
   if (!data) {
     data = await prisma.userHintsData.create({
       data: { userId, questionId },
     });
   }
 
-  const now = Date.now();
-  const unlockTime = data.createdAt.getTime() + HINT_UNLOCK_DELAY;
+  const remainingTime = await getTimeToUnlock(questionId);
 
-  if (now < unlockTime) {
+  if (remainingTime > 0) {
     return false;
   }
 
@@ -92,27 +138,28 @@ export const canUseHint = async (
   return false;
 };
 
-
 export const useHint = async (
   userId: string,
   questionId: number,
   hintNumber: 1 | 2
 ) => {
   const canUse = await canUseHint(userId, questionId, hintNumber);
+  const remainingTime = await getTimeToUnlock(questionId);
+  const time = msToHMS(remainingTime);
 
   if (!canUse) {
     return {
       hintText:
         hintNumber === 2
           ? "Unlock Hint 1 first."
-          : "Hint will be Unlocked after 3 hr",
+          :`Hint will be Unlocked after ${time.hours} hr ${time.minutes} min ${time.seconds}`,
     };
   }
 
   const hint = await prisma.hint.findFirst({
     where: {
       questionId,
-      id :hintNumber,
+      hintNumber: hintNumber,
     },
     select: {
       hintText: true,
@@ -149,17 +196,87 @@ export const useHint = async (
   };
 };
 
-
 export const submitAnswer = async (
   userId: string,
   questionId: number,
   submittedText: string
 ) => {
-  // TODO:
-  // 1. fetch question
-  // 2. check correctness
-  // 3. apply hint penalties
-  // 4. award points
-  // 5. decay question points
-  // 6. update user + question + answer tables
+  const result = await prisma.$transaction(async (tx) => {
+
+    const question = await tx.question.findUnique({
+      where: { id: questionId },
+    });
+
+    if (!question) {
+      throw new Error("Question not found");
+    }
+
+    const alreadyAnswered = await tx.userQuestionAnswer.findFirst({
+      where: { userId, questionId, isCorrect: true },
+    });
+
+    if (alreadyAnswered) {
+      return { isCorrect: false, alreadyAnswered: true , awardPoints:0 };
+    }
+
+    const isCorrect =
+      submittedText.trim().toLowerCase() ===
+      question.correctAnswer.trim().toLowerCase();
+
+    const hints = await tx.userHintsData.findFirst({
+      where: { userId, questionId },
+    });
+
+    let awardPoints = 0;
+
+    if (isCorrect) {
+      let penalty = 0;
+      if (hints?.hint1Used) {
+        penalty += HINT1_PENALTY;
+      }
+      if (hints?.hint2Used) {
+        penalty += HINT2_PENALTY;
+      }
+
+      awardPoints = Math.max(Math.floor(question.points * (1 - penalty)), 0);
+
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          totalPoints: { increment: awardPoints },
+          currentQuestionIndex: { increment: 1 },
+        },
+      });
+
+      const newPoints = calculateDecayedPoints(
+        question.points,
+        question.maxPoints
+      );
+
+      await tx.question.update({
+        where: { id: questionId },
+        data: { points: newPoints },
+      });
+    }
+
+    await tx.userQuestionAnswer.create({
+      data: {
+        userId,
+        questionId,
+        submittedText,
+        isCorrect,
+        awardedPoints: awardPoints,
+        usedHint1: hints?.hint1Used ?? false,
+        usedHint2: hints?.hint2Used ?? false,
+      },
+    });
+
+    return {
+      isCorrect,
+      awardPoints,
+      alreadyAnswered :false
+    };
+  });
+
+  return result;
 };

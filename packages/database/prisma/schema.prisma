@@ -38,6 +38,7 @@ model Question {
   userAnswers UserQuestionAnswer[]
   hints       Hint[]
   hintsData   UserHintsData[]
+  activatedAt DateTime?
   @@index([name])
 }
 
@@ -45,6 +46,7 @@ model Hint {
   id           Int       @id @default(autoincrement())
   name         String    
   questionId   Int
+  hintNumber   Int
   hintText  String    @default("")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now())

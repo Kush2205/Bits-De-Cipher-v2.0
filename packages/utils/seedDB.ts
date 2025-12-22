@@ -40,11 +40,13 @@ const seedQuestions = async () => {
                     create: [
                         {
                             hintText: `This is hint 1 for question ${index + 1}`,
-                            name: `Hint 1`
+                            name: `Hint 1`,
+                            hintNumber:1
                         },
                         {
                             hintText: `This is hint 2 for question ${index + 1}`,
-                            name: `Hint 2`
+                            name: `Hint 2`,
+                            hintNumber:2
                         }
                     ]
                 }
