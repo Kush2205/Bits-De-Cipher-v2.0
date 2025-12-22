@@ -81,7 +81,7 @@ export const getTimeToUnlock = async (questionId: number): Promise<number> => {
   });
 
   if (!question || !question.activatedAt) {
-    return -1;
+    return HINT_UNLOCK_DELAY;
   }
 
   const now = Date.now();

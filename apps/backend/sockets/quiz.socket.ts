@@ -1,81 +1,63 @@
-/**
- * Quiz WebSocket Handlers
- * 
- * Real-time communication for quiz sessions using Socket.io.
- * 
- * Setup:
- * - Create Socket.io server attached to Express server
- * - Enable CORS for frontend URL
- * - Use JWT authentication for socket connections
- * 
- * Socket Authentication:
- * io.use(async (socket, next) => {
- *   const token = socket.handshake.auth.token;
- *   // Verify JWT and attach user to socket
- *   socket.data.user = decodedUser;
- *   next();
- * });
- * 
- * Events to Handle:
- * 
- * 1. 'join-quiz-session':
- *    - Client sends: { sessionId }
- *    - Verify user is participant in this session
- *    - Join socket to room: `session:${sessionId}`
- *    - Emit to room: 'participant-joined' with user info
- *    - Send current leaderboard to new participant
- * 
- * 2. 'submit-answer':
- *    - Client sends: { sessionId, questionId, selectedOption, timeTaken }
- *    - Process answer submission (call quiz.service)
- *    - Calculate updated score
- *    - Emit to user: 'answer-result' with { correct, score }
- *    - Emit to room: 'leaderboard-update' with updated rankings
- * 
- * 3. 'request-leaderboard':
- *    - Client sends: { sessionId }
- *    - Fetch current leaderboard
- *    - Emit to user: 'leaderboard-data' with rankings
- * 
- * 4. 'quiz-complete':
- *    - Client sends: { sessionId }
- *    - Mark session as completed
- *    - Calculate final results
- *    - Emit to user: 'quiz-results' with detailed results
- *    - Emit to room: 'participant-finished' with user info
- * 
- * 5. 'disconnect':
- *    - Handle cleanup when user disconnects
- *    - Remove from active participants tracking
- *    - Don't delete progress (user can reconnect)
- * 
- * Admin Events (if implementing live quiz hosting):
- * 
- * 6. 'start-quiz':
- *    - Admin starts quiz for all participants
- *    - Emit to room: 'quiz-started'
- * 
- * 7. 'next-question':
- *    - Admin advances to next question
- *    - Emit to room: 'new-question' with question data
- * 
- * Room Naming Convention:
- * - Quiz sessions: `session:${sessionId}`
- * - Global leaderboard: `global-leaderboard`
- * - Quiz-specific leaderboard: `quiz:${quizId}:leaderboard`
- * 
- * Throttling/Rate Limiting:
- * - Limit answer submissions to 1 per second per user
- * - Prevent spam with socket middleware
- */
+import { Server, Socket } from "socket.io";
+import {
+  getCurrentQuestion,
+  getUserStats,
+  useHint,
+  submitAnswer,
+} from "../services/quiz.service";
+import { getGlobalLeaderboard } from "../services/leaderboard.service";
 
-import { Server as SocketIOServer } from 'socket.io';
-import { Server as HTTPServer } from 'http';
 
-export const setupQuizSockets = (httpServer: HTTPServer) => {
-  // TODO: Initialize Socket.io server
-  // TODO: Setup authentication middleware
-  // TODO: Register event handlers
-  // TODO: Implement room management
-  // TODO: Add error handling
+export const quizSockets = (io: Server) => {
+  io.on("connection", (socket: Socket) => {
+
+    const userId = socket.data.userId;
+    console.log(`Socket connected: ${socket.id}, userId: ${userId}`);
+
+    socket.join("quiz-room");
+
+    socket.on("join_quiz", async () => {
+      try {
+        console.log(`User ${userId} joined game-room`);
+        const question = await getCurrentQuestion(userId);
+        const userStats = await getUserStats(userId);
+        const leaderboard = await getGlobalLeaderboard(10);
+
+        socket.emit("quiz:init", {
+          question,
+          userStats,
+          leaderboard
+        });
+      } catch {
+        socket.emit("quiz:error", { message: "Failed to load quiz" });
+      }
+    });
+
+    socket.on("request_hint", async ({ questionId, hintNumber }) => {
+      try {
+        const result = await useHint(userId, questionId, hintNumber);
+        socket.emit("quiz:hint", result);
+      } catch {
+        socket.emit("quiz:error", { message: "Hint failed" });
+      }
+    });
+
+    socket.on("submit_answer", async ({ questionId, answer }) => {
+      try {
+        const result = await submitAnswer(userId, questionId, answer);
+        socket.emit("quiz:answer_result", result);
+
+        if (result.isCorrect) {
+          const leaderboard = await getGlobalLeaderboard(10);
+          io.to("quiz-room").emit("quiz:leaderboard_update" , leaderboard);
+        }
+      } catch {
+        socket.emit("quiz:error", { message: "Submission failed" });
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected:", userId);
+    });
+  });
 };

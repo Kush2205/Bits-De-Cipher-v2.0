@@ -24,6 +24,7 @@
     "google-auth-library": "^10.5.0",
     "jest": "^30.2.0",
     "jsonwebtoken": "^9.0.3",
+    "socket.io": "^4.8.2",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2"
   }
