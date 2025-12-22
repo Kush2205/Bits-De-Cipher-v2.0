@@ -43,13 +43,14 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
     currentUserId,
   } = options;
 
-  const { emit, on, off, isConnected } = useSocket();
+  const { emit, on, off, isConnected, socket } = useSocket();
 
   // State
   const [leaderboard, setLeaderboard] = useState<BackendLeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'all' | 'limited'>('limited'); // Track if viewing all or limited
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger to force refresh
 
   /**
    * Calculate current user's rank
@@ -140,68 +141,34 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
     const handleLeaderboardUpdate = (data: LeaderboardUpdatePayload) => {
       console.log('Leaderboard update received:', data);
 
+      // Find if user exists in current leaderboard
       setLeaderboard((prev) => {
-        // If viewing all leaderboard, we need to merge carefully
-        if (viewMode === 'all') {
-          // Find and update the user's entry
-          const existingIndex = prev.findIndex((entry) => entry.id === data.userId);
+        const existingIndex = prev.findIndex((entry) => entry.id === data.userId);
 
-          let updated: BackendLeaderboardEntry[];
-
-          if (existingIndex !== -1) {
-            // Update existing entry with new points and question index
-            updated = prev.map((entry) =>
-              entry.id === data.userId
-                ? { 
-                    ...entry, 
-                    totalPoints: data.totalPoints,
-                    currentQuestionIndex: (data as any).currentQuestionIndex ?? entry.currentQuestionIndex
-                  }
-                : entry
-            );
-          } else {
-            // New user not in current leaderboard - add them
-            const newEntry: BackendLeaderboardEntry = {
-              id: data.userId,
-              email: (data as any).email || '',
-              name: (data as any).name || null,
-              totalPoints: data.totalPoints,
-              currentQuestionIndex: (data as any).currentQuestionIndex ?? 0,
-            };
-            updated = [...prev, newEntry];
-            console.log('Added new user to leaderboard:', newEntry);
-          }
+        if (existingIndex !== -1) {
+          // User exists - update their data immediately
+          const updated = prev.map((entry) =>
+            entry.id === data.userId
+              ? { 
+                  ...entry, 
+                  totalPoints: data.totalPoints,
+                  currentQuestionIndex: data.currentQuestionIndex || entry.currentQuestionIndex
+                }
+              : entry
+          );
 
           // Re-sort by totalPoints descending
-          return updated.sort((a, b) => {
-            if (b.totalPoints !== a.totalPoints) {
-              return b.totalPoints - a.totalPoints;
-            }
-            return 0;
-          });
+          return updated.sort((a, b) => b.totalPoints - a.totalPoints);
         } else {
-          // For limited view, just update if user exists
-          const existingIndex = prev.findIndex((entry) => entry.id === data.userId);
-
-          if (existingIndex !== -1) {
-            const updated = prev.map((entry) =>
-              entry.id === data.userId
-                ? { 
-                    ...entry, 
-                    totalPoints: data.totalPoints,
-                    currentQuestionIndex: (data as any).currentQuestionIndex ?? entry.currentQuestionIndex
-                  }
-                : entry
-            );
-
-            return updated.sort((a, b) => {
-              if (b.totalPoints !== a.totalPoints) {
-                return b.totalPoints - a.totalPoints;
-              }
-              return 0;
-            });
-          }
-
+          // New user detected - trigger refresh outside of setState
+          console.log('New user detected, triggering background refresh...');
+          // Use setTimeout to avoid setState during render
+          setTimeout(() => {
+            if (viewMode === 'all' && socket) {
+              socket.emit('requestAllLeaderboard');
+            }
+          }, 0);
+          
           return prev;
         }
       });
@@ -227,7 +194,7 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
       off('leaderboard:update', handleLeaderboardUpdate);
       off('error', handleError);
     };
-  }, [isConnected, on, off, viewMode]);
+  }, [isConnected, on, off, viewMode, socket]);
 
   /**
    * Auto-fetch leaderboard on mount if enabled
@@ -257,6 +224,26 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
       off('initialData', handleInitialData);
     };
   }, [isConnected, on, off]);
+
+  /**
+   * Auto-refresh leaderboard periodically when viewing 'all' mode
+   * This ensures new users appear even if socket updates are missed
+   */
+  useEffect(() => {
+    if (!isConnected || viewMode !== 'all') return;
+
+    // Refresh every 3 seconds when viewing all leaderboard
+    const intervalId = setInterval(() => {
+      console.log('Auto-refreshing full leaderboard...');
+      if (socket) {
+        socket.emit('requestAllLeaderboard');
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isConnected, viewMode, socket]);
 
   return {
     // State
