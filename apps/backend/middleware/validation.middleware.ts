@@ -38,15 +38,78 @@
  * router.post('/signup', validate(signupSchema), authController.signup);
  */
 
-import { type NextFunction } from 'express';
 
-// TODO: Define validation schemas using Zod or Joi
 
-// TODO: Create validation middleware factory
-export const validate = (schema: any) => {
+
+import { z } from "zod";
+import { Request, Response, NextFunction } from "express";
+import type { ZodSchema } from "zod";
+
+export const validate = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    // Validate req.body against schema
-    // If invalid, return 400 with error details
-    // If valid, proceed to next()
+    try {
+      schema.parse({
+        body: req.body,
+        params: req.params,
+        query: req.query,
+      });
+
+      next();
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: error.issues.map((issue: any) => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        })),
+      });
+    }
   };
 };
+
+
+
+
+//schema hain different cheezo ka
+export const signupSchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .regex(
+        /^\d{2}[a-zA-Z]{2}\d{4}@rgipt\.ac\.in$/,
+        "Email must be of form 24cs3063@rgipt.ac.in"
+      ),
+
+    password: z
+      .string()
+      .min(6, "Minimum 6 characters")
+      .regex(/[A-Z]/, "One uppercase required")
+      .regex(/[0-9]/, "One number required")
+      .regex(/[^A-Za-z0-9]/, "One special character required"),
+
+    name: z.string().min(2).max(50),
+  }),
+});
+
+
+export const loginSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+    password: z.string().min(1, "Password required"),
+  }),
+});
+
+
+export const googleLoginSchema = z.object({
+  body: z.object({
+    credential: z.string().min(1, "Credential required"),
+  }),
+});
+
+export const refreshTokenSchema = z.object({
+  body: z.object({
+    refreshToken: z.string().min(1, "Refresh token required"),
+  }),
+});
+

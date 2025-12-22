@@ -15,11 +15,12 @@ export const createUser = async (email: string, hashedPassword: string, name?: s
         googleId: true,
         totalPoints: true,
         currentQuestionIndex: true,
-        createdAt: true,
+        // createdAt: true,
         updatedAt: true,
       }
     });
     return user;
+    
   } catch (error: any) {
     if (error.code === 'P2002') {
       throw new Error('Email already exists');
@@ -58,6 +59,7 @@ export const findOrCreateOAuthUser = async (
   provider: 'google'
 ) => {
 
+
   let user = await prisma.user.findUnique({
     where: { googleId: profile.id },
     select: {
@@ -81,7 +83,7 @@ export const findOrCreateOAuthUser = async (
   });
 
   if (existingUser) {
-    // Link Google account to existing user
+
     user = await prisma.user.update({
       where: { id: existingUser.id },
       data: { googleId: profile.id },
@@ -104,7 +106,7 @@ export const findOrCreateOAuthUser = async (
       email: profile.email,
       name: profile.name,
       googleId: profile.id,
-      passwordHash: null, 
+      passwordHash: null,
     },
     select: {
       id: true,

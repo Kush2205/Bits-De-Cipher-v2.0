@@ -13,6 +13,8 @@
     "@react-oauth/google": "^0.12.2",
     "@tailwindcss/vite": "^4.1.17",
     "jsonwebtoken": "^9.0.3",
+    "@types/axios": "^0.14.4",
+    "axios": "^1.13.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.10.1",

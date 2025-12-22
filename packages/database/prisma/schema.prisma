@@ -22,6 +22,8 @@ model User {
   updatedAt              DateTime  @updatedAt
   userAnswers            UserQuestionAnswer[]
   hintsData              UserHintsData[]
+  userAnswers            UserQuestionAnswer[]
+  hintsData              UserHintsData[]
   @@index([googleId])
 }
 
@@ -68,6 +70,7 @@ model UserQuestionAnswer {
   id              Int   @id @default(autoincrement())
   userId          String
   questionId      Int
+  questionId      Int
   user            User     @relation(fields: [userId], references: [id])
   question        Question @relation(fields: [questionId], references: [id])
   submittedText   String
@@ -77,6 +80,7 @@ model UserQuestionAnswer {
   usedHint2       Boolean  @default(false)
   createdAt       DateTime @default(now())
 
+   
    
   @@index([questionId])
 }
