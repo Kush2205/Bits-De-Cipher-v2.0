@@ -1,104 +1,224 @@
-/**
- * Quiz Service
- * 
- * Database operations for quiz management.
- * 
- * getAllQuizzes(skip, take, isPublished):
- * - Query Quiz with pagination
- * - Filter by isPublished if provided
- * - Include question count (don't include full questions)
- * - Return { quizzes, total }
- * 
- * getQuizById(id, includeAnswers):
- * - Fetch quiz with questions and options
- * - If includeAnswers is false, exclude correctAnswer from questions
- * - Used for: true (admin), false (participants)
- * 
- * createQuiz(data):
- * - Create quiz with nested questions and options
- * - Use Prisma nested create:
- *   quiz.create({
- *     data: {
- *       title, description, duration,
- *       questions: {
- *         create: [{ text, options: { create: [...] }, correctAnswer }]
- *       }
- *     }
- *   })
- * 
- * updateQuiz(id, data):
- * - Update quiz with nested question updates
- * - Handle adding/removing questions
- * 
- * deleteQuiz(id):
- * - Delete quiz (cascade to questions, options)
- * - Or implement soft delete with deletedAt field
- * 
- * createQuizSession(quizId, userId):
- * - Create QuizSession record
- * - Create QuizParticipant record
- * - Set status to 'in_progress'
- * - Return session with sessionId
- * 
- * submitAnswer(sessionId, questionId, selectedOption, timeTaken):
- * - Create Answer record
- * - Calculate score (check if correct, add time bonus)
- * - Update QuizParticipant totalScore
- * - Return { correct, score, correctAnswer }
- * 
- * completeQuizSession(sessionId):
- * - Update QuizSession status to 'completed'
- * - Set completedAt timestamp
- * - Calculate final statistics
- * 
- * getSessionResults(sessionId):
- * - Fetch session with all answers
- * - Include question details and user responses
- * - Calculate statistics (correct count, total score, time)
- */
-
-import PrismaClient from '@repo/db/client';
+import prisma from "@repo/db/client";
 
 
-// TODO: Implement service functions
+// ───────── USER STATS ─────────
+export const getUserStats = async (userId:string) => {
+   const userStats= await prisma.user.findUnique({
+       where:{id:userId},
+       select:{
+        currentQuestionIndex: true,
+        totalPoints: true,
+        name:true,
+       }
+   });
 
-export const getAllQuizzes = async (skip: number, take: number, isPublished?: boolean) => {
-  // Implementation here
+   return userStats;
 };
 
-export const getQuizById = async (id: string, includeAnswers: boolean = false) => {
-  // Implementation here
+
+
+
+// ───────── LEADERBOARD ─────────
+export const fetchLeaderboardData = async (limit:number) => {
+    const leaderboardData= await prisma.user.findMany({
+        orderBy:[{totalPoints:'desc'}],
+        take:limit,
+        select:{
+          name:true,
+          totalPoints:true,
+        }
+    });
+    return leaderboardData;
 };
 
-export const createQuiz = async (data: any) => {
-  // Implementation here
+
+
+
+// ───────── QUESTIONS ─────────
+export const fetchQuestionDetailsByIndex = async (index:number) => {
+     const questionDetails= await prisma.question.findUnique({
+          where: { id: index },
+          select:{
+            id: true,
+            name: true,
+            imageUrl: true,
+            points: true,
+          }
+     });
+     return questionDetails;
 };
 
-export const updateQuiz = async (id: string, data: any) => {
-  // Implementation here
+
+
+
+
+// ───────── HINT SYSTEM ─────────
+export const getUserHintsData = async (userId: string,questionId: number) => {
+    const UserhintsData =await prisma.userHintsData.findMany({
+        where:{
+             userId,
+             questionId,
+        },
+        select:{
+           hint1Used: true,
+           hint2Used: true,
+        }
+
+    });
+    return UserhintsData;
+};
+export const getHints = async (questionId:number) => {
+     const hints = await prisma.hint.findMany({
+       where:{questionId},
+        select:{
+          id:true,
+          hintText:true,
+        }
+     });
+     return hints;
 };
 
-export const deleteQuiz = async (id: string) => {
-  // Implementation here
-};
 
-export const createQuizSession = async (quizId: string, userId: string) => {
-  // Implementation here
-};
 
-export const submitAnswer = async (
-  sessionId: string,
-  questionId: string,
-  selectedOption: number,
-  timeTaken: number
+
+export const markHintAsUsed = async (
+  userId: string,
+  questionId: number,
+  hintNumber: 1 | 2
 ) => {
-  // Implementation here
+  const updateData =
+    hintNumber === 1
+      ? { hint1Used: true }
+      : { hint2Used: true };
+
+  const existing = await prisma.userHintsData.findFirst({
+    where: { userId, questionId },
+  });
+
+  if (existing) {
+    await prisma.userHintsData.updateMany({
+      where: { userId, questionId },
+      data: updateData,
+    });
+  } else {
+    await prisma.userHintsData.create({
+      data: {
+        userId,
+        questionId,
+        hint1Used: hintNumber === 1,
+        hint2Used: hintNumber === 2,
+      },
+    });
+  }
 };
 
-export const completeQuizSession = async (sessionId: string) => {
-  // Implementation here
+
+
+
+
+
+
+
+
+
+// ───────── ANSWER & SCORING ─────────
+export const validateAnswer = async (
+  questionId: number, userAnswer: string
+) => {
+  const question = await prisma.question.findUnique({
+    where: { id: questionId },
+    select: {
+      correctAnswer: true,
+      points: true,
+      maxPoints: true,
+    },
+  });
+
+  if (!question) return null;
+  const isCorrect =
+    question.correctAnswer.trim().toLowerCase() ===
+    userAnswer.trim().toLowerCase();
+
+  return {
+    isCorrect,
+    points: question.points,
+    maxPoints: question.maxPoints,
+  };
 };
 
-export const getSessionResults = async (sessionId: string) => {
-  // Implementation here
+
+export const calculateAwardedPoints = (
+  basePoints: number,
+  hints: {
+    hint1Used: boolean;
+    hint2Used: boolean;
+  }
+) => {
+  let points = basePoints;
+  if (hints.hint1Used) {
+    points -= basePoints * 0.05;
+  }
+  if (hints.hint2Used) {
+    points -= basePoints * 0.10; 
+  }
+
+  return Math.max(Math.floor(points), 0);
 };
+
+
+export const computePoints = async (
+  userId: string, questionId: number,basePoints: number
+) => {
+  const hintsData = await prisma.userHintsData.findFirst({
+    where: { userId, questionId },
+    select: {
+      hint1Used: true,
+      hint2Used: true,
+    },
+  });
+
+  return calculateAwardedPoints(basePoints, {hint1Used: hintsData?.hint1Used ?? false, hint2Used: hintsData?.hint2Used ?? false,
+  });
+};
+
+
+export const updateSubmissionToDB = async (
+  userId: string,
+  questionId: number,
+  userAnswer: string,
+  pointsAwarded: number,
+  isCorrect: boolean
+) => {
+  await prisma.userQuestionAnswer.create({
+    data: {
+      userId,
+      questionId,
+      submittedText: userAnswer,
+      awardedPoints: pointsAwarded,
+      isCorrect,
+    },
+  });
+};
+
+
+
+
+
+
+
+
+export const updateUserStats = async (
+  userId: string,
+  pointsAwarded: number
+) => {
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      totalPoints: { increment: pointsAwarded },
+      currentQuestionIndex: { increment: 1 },
+    },
+  });
+};
+
+
+
