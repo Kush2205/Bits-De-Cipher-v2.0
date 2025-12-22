@@ -1,12 +1,15 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import type { ReactNode } from 'react';
+import { useAppSelector } from '../../store/hooks';
 
 interface PrivateRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const PrivateRoute = ({ children }: PrivateRouteProps) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, status, initialized } = useAppSelector((state) => state.auth);
+  const isLoading = !initialized || status === 'loading';
+  const isAuthenticated = Boolean(user);
 
   if (isLoading) {
     return (

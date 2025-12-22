@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { getQuestionByIndex, getUserStats } from '../services/quiz.service';
 import { getTopLeaderboard, getAllLeaderboard } from '../services/leaderboard.service';
+import prisma from '@repo/db/client';
 
 export const setupSockets = (io: Server) => {
   io.on('connection', (socket: Socket) => {
@@ -21,6 +22,16 @@ export const setupSockets = (io: Server) => {
         const currentQuestion = await getQuestionByIndex(userStats.currentQuestionIndex);
         const leaderboard = await getTopLeaderboard(10);
 
+        let hintUsage = { hint1Used: false, hint2Used: false };
+        if (currentQuestion) {
+          const hints = await prisma.userHintsData.findFirst({
+            where: { userId, questionId: currentQuestion.id },
+          });
+          if (hints) {
+            hintUsage = { hint1Used: hints.hint1Used, hint2Used: hints.hint2Used };
+          }
+        }
+
         socket.emit('initialData', {
           currentQuestion,
           userStats: {
@@ -30,6 +41,7 @@ export const setupSockets = (io: Server) => {
             email: userStats.email,
           },
           leaderboard,
+          hintUsage,
         });
       } catch (error) {
         console.error('Error in joinQuiz:', error);

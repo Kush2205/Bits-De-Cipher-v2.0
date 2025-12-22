@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-import { useAuth } from '../../hooks/useAuth';
-import { useSocket } from '../../hooks/useSocket';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../../store/hooks';
+import { signupUser, googleLoginUser } from '../../store/slices/authSlice';
 
 export const SignupForm = () => {
   const [name, setName] = useState('');
@@ -12,8 +12,7 @@ export const SignupForm = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { signup, googleLogin } = useAuth();
-  const { reconnect } = useSocket();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,11 +32,10 @@ export const SignupForm = () => {
     setIsLoading(true);
 
     try {
-      await signup(email, password, name);
-      reconnect(); // Reconnect socket with new token
+      await dispatch(signupUser({ email, password, name })).unwrap();
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+    } catch (err) {
+      setError(typeof err === 'string' ? err : 'Signup failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -45,11 +43,10 @@ export const SignupForm = () => {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      await googleLogin(credentialResponse.credential);
-      reconnect(); // Reconnect socket with new token
+      await dispatch(googleLoginUser(credentialResponse.credential)).unwrap();
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Google signup failed.');
+    } catch (err) {
+      setError(typeof err === 'string' ? err : 'Google signup failed.');
     }
   };
 

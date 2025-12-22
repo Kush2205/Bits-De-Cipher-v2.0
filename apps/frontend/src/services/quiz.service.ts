@@ -1,24 +1,17 @@
 import api from '../lib/api';
+import type { BackendQuestion } from '../types';
 
-export interface QuestionPayload {
-  id: string;
-  index: number;
-  text: string;
-  imageUrl?: string | null;
-  originalPoints: number;
-  currentPoints: number;
-  minPoints: number;
-  decayPercent: number;
-  hint1Text?: string | null;
-  hint2Text?: string | null;
-  hint1Penalty?: number | null;
-  hint2Penalty?: number | null;
-  hint1UnlockSec?: number | null;
-  hint2UnlockSec?: number | null;
+export interface SubmitAnswerResponse {
+  isCorrect: boolean;
+  awardedPoints: number;
+  alreadyCompleted: boolean;
+  totalPoints?: number;
+  currentQuestionIndex?: number;
+  nextQuestion?: BackendQuestion | null;
 }
 
 export const getCurrentQuestion = async () => {
-  const response = await api.get<{ question: QuestionPayload | null }>('/quiz/current');
+  const response = await api.get<{ question: BackendQuestion | null }>('/quiz/current');
   return response.data;
 };
 
@@ -28,12 +21,8 @@ export const submitAnswer = async (data: {
   usedHint1?: boolean;
   usedHint2?: boolean;
 }) => {
-  const response = await api.post('/quiz/answer', data);
-  return response.data as {
-    isCorrect: boolean;
-    awardedPoints: number;
-    alreadyCompleted: boolean;
-  };
+  const response = await api.post<SubmitAnswerResponse>('/quiz/answer', data);
+  return response.data;
 };
 
 export const useHint = async (data: {

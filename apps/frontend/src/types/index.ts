@@ -1,11 +1,4 @@
-/**
- * TypeScript Type Definitions
- * 
- * Shared types and interfaces for the frontend application.
- * These should match the backend API response structures.
- */
 
-// User Types
 export interface User {
   id: string;
   email: string;
@@ -15,7 +8,6 @@ export interface User {
   updatedAt: Date;
 }
 
-// Authentication Types
 export interface AuthTokens {
   accessToken: string;
   refreshToken?: string;
@@ -28,12 +20,11 @@ export interface AuthResponse {
   refreshToken?: string;
 }
 
-// Quiz Types
 export interface Quiz {
   id: string;
   title: string;
   description: string | null;
-  duration: number; // in seconds
+  duration: number; 
   questionCount: number;
   isPublished: boolean;
   createdAt: Date;
@@ -57,10 +48,9 @@ export interface QuizOption {
 }
 
 export interface QuestionWithAnswer extends Question {
-  correctAnswer: number; // Index of correct option
+  correctAnswer: number; 
 }
 
-// Quiz Session Types
 export interface QuizSession {
   id: string;
   quizId: string;
@@ -86,11 +76,10 @@ export interface Answer {
   selectedOption: number;
   isCorrect: boolean;
   points: number;
-  timeTaken: number; // in seconds
+  timeTaken: number;
   answeredAt: Date;
 }
 
-// Leaderboard Types
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
@@ -119,7 +108,6 @@ export interface QuizHistory {
   completedAt: Date;
 }
 
-// Backend Socket Event Types (matching backend implementation)
 export interface BackendQuestion {
   id: number;
   name: string;
@@ -128,7 +116,7 @@ export interface BackendQuestion {
   maxPoints: number;
   hints: Array<{
     id: number;
-    name: string;
+    number: number;
     hintText: string;
   }>;
   createdAt: Date;
@@ -149,11 +137,11 @@ export interface BackendLeaderboardEntry {
   currentQuestionIndex: number;
 }
 
-// Socket Event Payloads
 export interface InitialDataPayload {
   currentQuestion: BackendQuestion | null;
   userStats: BackendUserStats;
   leaderboard: BackendLeaderboardEntry[];
+  hintUsage?: { hint1Used: boolean; hint2Used: boolean };
 }
 
 export interface LeaderboardUpdatePayload {
@@ -170,7 +158,6 @@ export interface SocketErrorPayload {
   message: string;
 }
 
-// API Response Types
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;

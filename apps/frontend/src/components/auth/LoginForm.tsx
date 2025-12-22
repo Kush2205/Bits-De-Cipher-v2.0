@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-import { useAuth } from '../../hooks/useAuth';
-import { useSocket } from '../../hooks/useSocket';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../../store/hooks';
+import { loginUser, googleLoginUser } from '../../store/slices/authSlice';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -10,8 +10,7 @@ export const LoginForm = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login, googleLogin } = useAuth();
-  const { reconnect } = useSocket();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,11 +19,10 @@ export const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      reconnect(); // Reconnect socket with new token
+      await dispatch(loginUser({ email, password })).unwrap();
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } catch (err) {
+      setError(typeof err === 'string' ? err : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -32,11 +30,10 @@ export const LoginForm = () => {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      await googleLogin(credentialResponse.credential);
-      reconnect(); // Reconnect socket with new token
+      await dispatch(googleLoginUser(credentialResponse.credential)).unwrap();
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Google login failed.');
+    } catch (err) {
+      setError(typeof err === 'string' ? err : 'Google login failed.');
     }
   };
 

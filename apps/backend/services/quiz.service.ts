@@ -180,6 +180,20 @@ export const submitAnswer = async (opts: {
         totalPoints: result.totalPoints,
         currentQuestionIndex: result.currentQuestionIndex,
       });
+
+      // Broadcast decayed points for the current question so other users see live available points
+      // result.currentQuestionIndex reflects the user's next index, so use questionId from input
+      const updatedQuestion = await prisma.question.findUnique({
+        where: { id: opts.questionId },
+        select: { id: true, points: true },
+      });
+
+      if (updatedQuestion) {
+        getIO().to('game-room').emit('question:pointsUpdate', {
+          questionId: updatedQuestion.id,
+          points: updatedQuestion.points,
+        });
+      }
     } catch (err) {
       console.error('Socket emit failed', err);
     }

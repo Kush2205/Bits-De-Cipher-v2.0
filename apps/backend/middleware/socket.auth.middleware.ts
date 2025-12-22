@@ -8,7 +8,6 @@ interface JWTPayload {
 
 export const socketAuthMiddleware = (socket: Socket, next: (err?: ExtendedError) => void) => {
   try {
-    // Try multiple token sources: auth object, headers, and query params
     let token = socket.handshake.auth?.token;
     
     if (!token) {
@@ -20,21 +19,19 @@ export const socketAuthMiddleware = (socket: Socket, next: (err?: ExtendedError)
     }
 
     if (!token) {
-      console.log('❌ Socket auth failed: No token provided');
+      console.log(' Socket auth failed: No token provided');
       return next(new Error('Authentication error: No token provided'));
     }
 
-    // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as JWTPayload;
     
-    // Attach user data to socket
     socket.data.userId = decoded.userId;
     socket.data.email = decoded.email;
     
     console.log(`✅ Socket authenticated for user: ${decoded.email} (${decoded.userId})`);
     next();
   } catch (error) {
-    console.log('❌ Socket auth failed: Invalid token -', error instanceof Error ? error.message : 'Unknown error');
+    console.log('Socket auth failed: Invalid token -', error instanceof Error ? error.message : 'Unknown error');
     next(new Error('Authentication error: Invalid token'));
   }
 };

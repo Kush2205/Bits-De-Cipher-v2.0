@@ -1,29 +1,35 @@
-import { useAuth } from '../hooks/useAuth';
-import { useQuizRoom } from '../hooks/useQuizRoom';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LiveLeaderboard from '../components/LiveLeaderboard';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { logoutUser } from '../store/slices/authSlice';
+import { refreshLeaderboard } from '../store/slices/leaderboardSlice';
+import { joinQuizRoom } from '../store/slices/quizSlice';
 
 const DashboardPage = () => {
-  const { user, logout } = useAuth();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const { isConnected } = useAppSelector((state) => state.socket);
+  const { userStats, isJoined, error: quizError } = useAppSelector((state) => state.quiz);
+  const { entries: leaderboard, error: leaderboardError } = useAppSelector((state) => state.leaderboard);
   const navigate = useNavigate();
 
-  // All quiz room functionality in one hook
-  const {
-    isConnected,
-    userStats,
-    leaderboard,
-    error,
-    refreshLeaderboard,
-  } = useQuizRoom({
-    userId: user?.id,
-    autoJoin: true,
-    leaderboardLimit: 15,
-  });
+  useEffect(() => {
+    if (isConnected && !isJoined) {
+      dispatch(joinQuizRoom());
+    }
+  }, [dispatch, isConnected, isJoined]);
 
   const handleLogout = async () => {
-    await logout();
+    await dispatch(logoutUser());
     navigate('/login');
   };
+
+  const handleRefreshLeaderboard = () => {
+    dispatch(refreshLeaderboard({ userId: user?.id }));
+  };
+
+  const error = quizError || leaderboardError;
 
   return (
     <div className="min-h-screen bg-black">
@@ -72,7 +78,6 @@ const DashboardPage = () => {
         </div>
       </nav>
 
-      {/* Error Message */}
       {error && (
         <div className="max-w-6xl mx-auto px-4 pt-4">
           <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4 text-red-400">
@@ -82,7 +87,6 @@ const DashboardPage = () => {
         </div>
       )}
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Panel */}
@@ -158,7 +162,6 @@ const DashboardPage = () => {
                 </div>
               </div>
 
-              {/* Progress Bar */}
               <div className="mb-10">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-400">Your Progress</span>
@@ -168,7 +171,7 @@ const DashboardPage = () => {
                 </div>
                 <div className="w-full bg-[#2d2d2d] rounded-full h-3 overflow-hidden border border-gray-800">
                   <div
-                    className="bg-gradient-to-r from-green-600 to-green-500 h-full rounded-full transition-all duration-500 shadow-lg shadow-green-900/50"
+                    className="bg-linear-to-r from-green-600 to-green-500 h-full rounded-full transition-all duration-500 shadow-lg shadow-green-900/50"
                     style={{ width: `${((userStats?.currentQuestionIndex ?? user?.currentQuestionIndex ?? 0) / 10) * 100}%` }}
                   ></div>
                 </div>
@@ -222,7 +225,7 @@ const DashboardPage = () => {
                 limit={10}
               />
               <button
-                onClick={refreshLeaderboard}
+                onClick={handleRefreshLeaderboard}
                 className="w-full mt-4 px-4 py-2 bg-[#2d2d2d] hover:bg-[#3d3d3d] text-white text-sm font-medium rounded-lg transition border border-gray-700 hover:border-gray-600"
               >
                 Refresh Leaderboard
