@@ -33,7 +33,7 @@ export const getQuestionByIndex = async (index: number) => {
       hints: {
         select: {
           id: true,
-          name: true,
+          number: true,
           hintText: true,
         },
       },
@@ -151,7 +151,7 @@ export const submitAnswer = async (opts: {
           hints: {
             select: {
               id: true,
-              name: true,
+              number: true,
               hintText: true,
             },
           },
