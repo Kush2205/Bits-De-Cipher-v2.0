@@ -22,8 +22,7 @@ model User {
   updatedAt              DateTime  @updatedAt
   userAnswers            UserQuestionAnswer[]
   hintsData              UserHintsData[]
-  userAnswers            UserQuestionAnswer[]
-  hintsData              UserHintsData[]
+ 
   @@index([googleId])
 }
 
@@ -69,7 +68,6 @@ model UserHintsData{
 model UserQuestionAnswer {
   id              Int   @id @default(autoincrement())
   userId          String
-  questionId      Int
   questionId      Int
   user            User     @relation(fields: [userId], references: [id])
   question        Question @relation(fields: [questionId], references: [id])
