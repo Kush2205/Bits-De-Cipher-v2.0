@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../hooks/useAuth';
+import { useSocket } from '../../hooks/useSocket';
 import { Link, useNavigate } from 'react-router-dom';
 
 export const LoginForm = () => {
@@ -10,6 +11,7 @@ export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { login, googleLogin } = useAuth();
+  const { reconnect } = useSocket();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,7 +21,8 @@ export const LoginForm = () => {
 
     try {
       await login(email, password);
-      navigate('/contest');
+      reconnect(); // Reconnect socket with new token
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -30,7 +33,8 @@ export const LoginForm = () => {
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
       await googleLogin(credentialResponse.credential);
-      navigate('/contest');
+      reconnect(); // Reconnect socket with new token
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Google login failed.');
     }

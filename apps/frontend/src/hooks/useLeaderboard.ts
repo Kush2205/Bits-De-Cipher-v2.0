@@ -49,6 +49,7 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
   const [leaderboard, setLeaderboard] = useState<BackendLeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'all' | 'limited'>('limited'); // Track if viewing all or limited
 
   /**
    * Calculate current user's rank
@@ -69,6 +70,7 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
     console.log(`Requesting leaderboard (limit: ${limit})`);
     setIsLoading(true);
     setError(null);
+    setViewMode('limited');
     emit('requestLeaderboard', { limit });
   }, [isConnected, emit, initialLimit]);
 
@@ -84,6 +86,7 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
     console.log('Requesting all leaderboard entries');
     setIsLoading(true);
     setError(null);
+    setViewMode('all');
     emit('requestAllLeaderboard');
   }, [isConnected, emit]);
 
@@ -138,39 +141,69 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
       console.log('Leaderboard update received:', data);
 
       setLeaderboard((prev) => {
-        // Find and update the user's entry
-        const existingIndex = prev.findIndex((entry) => entry.id === data.userId);
+        // If viewing all leaderboard, we need to merge carefully
+        if (viewMode === 'all') {
+          // Find and update the user's entry
+          const existingIndex = prev.findIndex((entry) => entry.id === data.userId);
 
-        let updated: BackendLeaderboardEntry[];
+          let updated: BackendLeaderboardEntry[];
 
-        if (existingIndex !== -1) {
-          // Update existing entry with new points and question index
-          updated = prev.map((entry) =>
-            entry.id === data.userId
-              ? { 
-                  ...entry, 
-                  totalPoints: data.totalPoints,
-                  // Update currentQuestionIndex if available in the payload
-                  currentQuestionIndex: (data as any).currentQuestionIndex ?? entry.currentQuestionIndex
-                }
-              : entry
-          );
-        } else {
-          // User not in current leaderboard (might be new or outside limit)
-          // Re-request leaderboard to get updated list
-          console.log('User not in current leaderboard, will refresh');
-          updated = prev;
-        }
-
-        // Re-sort by totalPoints descending, then by createdAt ascending
-        return updated.sort((a, b) => {
-          if (b.totalPoints !== a.totalPoints) {
-            return b.totalPoints - a.totalPoints;
+          if (existingIndex !== -1) {
+            // Update existing entry with new points and question index
+            updated = prev.map((entry) =>
+              entry.id === data.userId
+                ? { 
+                    ...entry, 
+                    totalPoints: data.totalPoints,
+                    currentQuestionIndex: (data as any).currentQuestionIndex ?? entry.currentQuestionIndex
+                  }
+                : entry
+            );
+          } else {
+            // New user not in current leaderboard - add them
+            const newEntry: BackendLeaderboardEntry = {
+              id: data.userId,
+              email: (data as any).email || '',
+              name: (data as any).name || null,
+              totalPoints: data.totalPoints,
+              currentQuestionIndex: (data as any).currentQuestionIndex ?? 0,
+            };
+            updated = [...prev, newEntry];
+            console.log('Added new user to leaderboard:', newEntry);
           }
-          // If points are equal, sort by createdAt (earlier is better)
-          // Note: createdAt might not be in the data, so this is optional
-          return 0;
-        });
+
+          // Re-sort by totalPoints descending
+          return updated.sort((a, b) => {
+            if (b.totalPoints !== a.totalPoints) {
+              return b.totalPoints - a.totalPoints;
+            }
+            return 0;
+          });
+        } else {
+          // For limited view, just update if user exists
+          const existingIndex = prev.findIndex((entry) => entry.id === data.userId);
+
+          if (existingIndex !== -1) {
+            const updated = prev.map((entry) =>
+              entry.id === data.userId
+                ? { 
+                    ...entry, 
+                    totalPoints: data.totalPoints,
+                    currentQuestionIndex: (data as any).currentQuestionIndex ?? entry.currentQuestionIndex
+                  }
+                : entry
+            );
+
+            return updated.sort((a, b) => {
+              if (b.totalPoints !== a.totalPoints) {
+                return b.totalPoints - a.totalPoints;
+              }
+              return 0;
+            });
+          }
+
+          return prev;
+        }
       });
     };
 
@@ -194,7 +227,7 @@ export const useLeaderboard = (options: UseLeaderboardOptions = {}): UseLeaderbo
       off('leaderboard:update', handleLeaderboardUpdate);
       off('error', handleError);
     };
-  }, [isConnected, on, off]);
+  }, [isConnected, on, off, viewMode]);
 
   /**
    * Auto-fetch leaderboard on mount if enabled

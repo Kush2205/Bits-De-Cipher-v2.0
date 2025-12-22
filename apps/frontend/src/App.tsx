@@ -4,7 +4,7 @@ import { SocketProvider } from './context/SocketContext';
 import PrivateRoute from './components/routing/PrivateRoute';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import ContestPage from './pages/ContestPage';
+import DashboardPage from './pages/DashboardPage';
 import QuizRoomPage from './pages/QuizRoomPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 
@@ -17,13 +17,15 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route
-              path="/contest"
+              path="/dashboard"
               element={
                 <PrivateRoute>
-                  <ContestPage />
+                  <DashboardPage />
                 </PrivateRoute>
               }
             />
+            {/* Redirect old contest route to dashboard for backwards compatibility */}
+            <Route path="/contest" element={<Navigate to="/dashboard" replace />} />
             <Route
               path="/quiz"
               element={

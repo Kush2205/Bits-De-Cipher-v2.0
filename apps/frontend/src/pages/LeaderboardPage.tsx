@@ -88,7 +88,7 @@ const LeaderboardPage = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate('/contest')}
+                onClick={() => navigate('/dashboard')}
                 className="text-gray-400 hover:text-white transition"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,7 +322,7 @@ const LeaderboardPage = () => {
             Back to Quiz
           </button>
           <button
-            onClick={() => navigate('/contest')}
+            onClick={() => navigate('/dashboard')}
             className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition"
           >
             Dashboard

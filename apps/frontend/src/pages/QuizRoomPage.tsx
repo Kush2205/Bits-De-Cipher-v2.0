@@ -118,7 +118,7 @@ const QuizRoomPage = () => {
           <h2 className="text-red-500 text-xl font-bold mb-4">Error</h2>
           <p className="text-white mb-6">{quiz.error}</p>
           <button
-            onClick={() => navigate('/contest')}
+            onClick={() => navigate('/dashboard')}
             className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition"
           >
             Return to Dashboard
@@ -158,7 +158,7 @@ const QuizRoomPage = () => {
               View Leaderboard
             </button>
             <button
-              onClick={() => navigate('/contest')}
+              onClick={() => navigate('/dashboard')}
               className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition"
             >
               Back to Dashboard

@@ -15,6 +15,7 @@ interface SocketContextType {
   emit: (event: string, data?: any) => void;
   on: (event: string, handler: (data: any) => void) => void;
   off: (event: string, handler?: (data: any) => void) => void;
+  reconnect: () => void;
 }
 
 export const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -105,6 +106,48 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     socketManager.off(event, handler);
   };
 
+  const reconnect = () => {
+    console.log('🔄 Manual socket reconnect triggered');
+    const token = localStorage.getItem('accessToken');
+    
+    if (!token) {
+      console.warn('No token found for reconnection');
+      return;
+    }
+
+    // Disconnect existing socket
+    socketManager.disconnect();
+    
+    // Connect with new token
+    const socket = socketManager.connect(token);
+    socketRef.current = socket;
+
+    // Re-attach event listeners
+    const handleConnect = () => {
+      console.log('Socket reconnected successfully');
+      setIsConnected(true);
+    };
+
+    const handleDisconnect = (reason: string) => {
+      console.log('Socket disconnected:', reason);
+      setIsConnected(false);
+    };
+
+    const handleConnectError = (error: Error) => {
+      setIsConnected(false);
+      console.error('Socket connection error:', error.message);
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleConnectError);
+
+    // Set initial connection status
+    if (socket.connected) {
+      setIsConnected(true);
+    }
+  };
+
   return (
     <SocketContext.Provider
       value={{
@@ -112,7 +155,8 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
         isConnected,
         emit,
         on,
-        off
+        off,
+        reconnect
       }}
     >
       {children}
