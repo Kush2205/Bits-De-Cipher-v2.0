@@ -119,31 +119,55 @@ export interface QuizHistory {
   completedAt: Date;
 }
 
-// WebSocket Event Types
-export interface SocketEvents {
-  // Client → Server
-  'join-quiz-session': { sessionId: string };
-  'submit-answer': {
-    sessionId: string;
-    questionId: string;
-    selectedOption: number;
-    timeTaken: number;
-  };
-  'request-leaderboard': { sessionId: string };
-  'quiz-complete': { sessionId: string };
-  'subscribe-global-leaderboard': void;
-  'subscribe-quiz-leaderboard': { quizId: string };
+// Backend Socket Event Types (matching backend implementation)
+export interface BackendQuestion {
+  id: number;
+  name: string;
+  imageUrl: string | null;
+  points: number;
+  maxPoints: number;
+  hints: Array<{
+    id: number;
+    name: string;
+    hintText: string;
+  }>;
+  createdAt: Date;
+}
 
-  // Server → Client
-  'participant-joined': { userId: string; name: string };
-  'answer-result': { correct: boolean; score: number; correctAnswer: number };
-  'leaderboard-update': LeaderboardEntry[];
-  'leaderboard-data': LeaderboardEntry[];
-  'quiz-results': any;
-  'participant-finished': { userId: string; name: string };
-  'global-leaderboard-update': LeaderboardEntry[];
-  'quiz-leaderboard-update': LeaderboardEntry[];
-  'rank-change': { newRank: number; oldRank: number };
+export interface BackendUserStats {
+  totalPoints: number;
+  currentQuestionIndex: number;
+  name: string | null;
+  email: string;
+}
+
+export interface BackendLeaderboardEntry {
+  id: string;
+  name: string | null;
+  email: string;
+  totalPoints: number;
+  currentQuestionIndex: number;
+}
+
+// Socket Event Payloads
+export interface InitialDataPayload {
+  currentQuestion: BackendQuestion | null;
+  userStats: BackendUserStats;
+  leaderboard: BackendLeaderboardEntry[];
+}
+
+export interface LeaderboardUpdatePayload {
+  userId: string;
+  awardedPoints: number;
+  totalPoints: number;
+}
+
+export interface LeaderboardDataPayload {
+  leaderboard: BackendLeaderboardEntry[];
+}
+
+export interface SocketErrorPayload {
+  message: string;
 }
 
 // API Response Types

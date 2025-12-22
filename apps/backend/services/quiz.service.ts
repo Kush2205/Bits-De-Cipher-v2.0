@@ -178,6 +178,7 @@ export const submitAnswer = async (opts: {
         userId: opts.userId,
         awardedPoints: result.awardedPoints,
         totalPoints: result.totalPoints,
+        currentQuestionIndex: result.currentQuestionIndex,
       });
     } catch (err) {
       console.error('Socket emit failed', err);
