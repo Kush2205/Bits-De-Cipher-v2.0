@@ -55,7 +55,7 @@ export const SignupForm = () => {
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-white">Create Account</h2>
         <p className="mt-2 text-sm text-gray-400">
@@ -148,11 +148,15 @@ export const SignupForm = () => {
       </div>
 
       <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-          theme="filled_black"
-        />
+       <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            shape='pill'
+            useOneTap
+            theme="filled_black"
+            size="large"
+            text="signin_with"
+          />
       </div>
 
       <p className="text-center text-sm text-gray-400">

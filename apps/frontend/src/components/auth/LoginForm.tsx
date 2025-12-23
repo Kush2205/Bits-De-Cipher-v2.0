@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../../store/hooks';
-import { loginUser, googleLoginUser } from '../../store/slices/authSlice';
+import { googleLoginUser, loginUser } from '../../store/slices/authSlice';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -45,20 +45,18 @@ export const LoginForm = () => {
     <div className="w-full space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
-        <p className="mt-2 text-sm text-gray-400">
-          Sign in to continue the quiz competition
-        </p>
+        <p className="mt-2 text-sm text-gray-300">Enter your credentials to join the live contest.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-lg">
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
             {error}
           </div>
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-200">
             Email
           </label>
           <input
@@ -67,13 +65,13 @@ export const LoginForm = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-2.5 bg-[#2d2d2d] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-green-600 focus:border-transparent transition"
+            className="w-full rounded-lg border border-gray-700 bg-[#2d2d2d] px-4 py-2.5 text-white placeholder-gray-500 outline-none transition focus:border-transparent focus:ring-2 focus:ring-green-500"
             placeholder="you@example.com"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-200">
             Password
           </label>
           <input
@@ -82,7 +80,7 @@ export const LoginForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-4 py-2.5 bg-[#2d2d2d] border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-green-600 focus:border-transparent transition"
+            className="w-full rounded-lg border border-gray-700 bg-[#2d2d2d] px-4 py-2.5 text-white placeholder-gray-500 outline-none transition focus:border-transparent focus:ring-2 focus:ring-green-500"
             placeholder="••••••••"
           />
         </div>
@@ -90,7 +88,7 @@ export const LoginForm = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-900/20"
+          className="w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-green-900/25 transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? 'Signing in...' : 'Sign In'}
         </button>
@@ -98,25 +96,28 @@ export const LoginForm = () => {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-700"></div>
+          <div className="w-full border-t border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-[#1a1a1a] text-gray-400">Or continue with</span>
+          <span className="bg-[#1a1a1a] px-2 text-gray-400">Or continue with</span>
         </div>
       </div>
 
       <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-          useOneTap
-          theme="filled_black"
-        />
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            shape='pill'
+            useOneTap
+            theme="filled_black"
+            size="large"
+            text="signin_with"
+          />
       </div>
 
-      <p className="text-center text-sm text-gray-400">
+      <p className="text-center text-sm text-gray-300">
         Don't have an account?{' '}
-        <Link to="/signup" className="font-medium text-green-500 hover:text-green-400 transition">
+        <Link to="/signup" className="font-medium text-green-400 transition hover:text-green-300">
           Sign up
         </Link>
       </p>

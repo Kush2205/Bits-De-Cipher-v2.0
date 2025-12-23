@@ -153,117 +153,102 @@ const QuizRoomPage = () => {
   }
 
   return (
-    <div className="h-screen bg-linear-to-br from-gray-950 via-gray-900 to-black flex flex-col overflow-hidden">
-      {/* Header */}
-      <nav className="bg-linear-to-r from-gray-900/90 to-gray-800/90 backdrop-blur-sm border-b border-gray-700/50 shrink-0">
-        <div className="mx-auto px-6 py-3">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-6">
-              <h1 className="text-2xl font-bold bg-linear-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
-                Bits De Cipher
-              </h1>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800/50 rounded-full">
-                <div className={`w-2 h-2 rounded-full ${socketState.isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                <span className={`text-xs font-medium ${socketState.isConnected ? 'text-green-400' : 'text-red-400'}`}>
-                  {socketState.isConnected ? 'Live' : 'Offline'}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-300">{user?.name || user?.email}</p>
-                  <p className="text-xs text-gray-400">
-                    <span className="text-green-400 font-semibold">{quiz.userStats?.totalPoints || 0}</span> pts •{' '}
-                    <span className="text-emerald-400">{quiz.userStats?.currentQuestionIndex || 0}/10</span> solved
-                  </p>
-                </div>
-              </div>
+    <div className="flex h-screen flex-col overflow-hidden bg-[#05060a]">
+      {/* Navbar */}
+      <nav className="shrink-0 border-b border-gray-800/50 bg-gray-900/30 backdrop-blur-sm">
+        <div className="mx-auto px-6">
+          <div className="flex h-16 items-center justify-between">
+            <h1 className="text-xl font-semibold text-white">Bits De Cipher</h1>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-300">{user?.name || user?.email}</span>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition"
+                className="rounded-lg border border-gray-700 bg-gray-800/50 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-600 hover:text-white"
               >
-                Exit
+                Logout
               </button>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="flex-1 grid grid-cols-12 gap-4 px-6 py-4 overflow-hidden">
-        <div className="col-span-12 lg:col-span-9 h-full flex flex-col gap-4 min-h-0 overflow-hidden">
-          <div className="flex-1 bg-gray-900/60 border border-gray-800 rounded-2xl shadow-xl overflow-hidden relative flex min-h-0">
+      <div className="grid flex-1 grid-cols-12 gap-4 overflow-hidden px-6 py-4">
+        <div className="col-span-12 flex min-h-0 flex-col gap-3 overflow-hidden lg:col-span-9">
+          {/* Image Display - Larger */}
+          <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-gray-800/50 bg-[#0d0e12] shadow-xl">
             {quiz.currentQuestion.imageUrl && (
               <img
                 src={quiz.currentQuestion.imageUrl}
                 alt="Question"
-                className="w-full h-full object-contain"
+                className="h-full w-full object-contain"
               />
             )}
-            <div className="absolute top-4 left-4 bg-black/50 backdrop-blur px-4 py-2 rounded-lg border border-gray-700">
-              <p className="text-xs text-gray-400">Available points</p>
-              <p className="text-2xl font-bold text-green-400 leading-tight">
+            <div className="absolute left-4 top-4 rounded-lg border border-gray-700/50 bg-black/60 px-4 py-2 backdrop-blur">
+              <p className="text-xs text-gray-400">Points</p>
+              <p className="text-2xl font-bold leading-tight text-emerald-400">
                 {quiz.currentQuestion.points}
               </p>
             </div>
           </div>
 
-          <div className="bg-gray-900/80 border border-gray-800 rounded-2xl shadow-lg p-4 flex flex-col gap-4">
-            <div className="flex gap-3">
+          {/* Controls Section */}
+          <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-gray-800/50 bg-[#0d0e12] p-4 shadow-lg">
+            {/* Hints Buttons - Smaller */}
+            <div className="flex gap-2">
               {quiz.currentQuestion.hints && quiz.currentQuestion.hints.length > 0 && (
                 <>
                   {quiz.currentQuestion.hints[0] && (
                     <button
                       onClick={() => handleUseHint(1)}
                       disabled={quiz.usedHints.hint1}
-                      className={`
-                        flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-200
-                        ${quiz.usedHints.hint1
-                          ? 'bg-gray-800 text-gray-500 border border-gray-700'
-                          : 'bg-amber-500/15 text-amber-300 border border-amber-500/40 hover:bg-amber-500/25'}
-                      `}
+                      className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ${
+                        quiz.usedHints.hint1
+                          ? 'border border-gray-800 bg-gray-900 text-gray-600'
+                          : 'border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                      }`}
                     >
-                      {quiz.usedHints.hint1 ? 'Hint 1 used' : 'Use Hint 1'}
+                      {quiz.usedHints.hint1 ? 'Hint 1 used' : 'Hint 1'}
                     </button>
                   )}
                   {quiz.currentQuestion.hints[1] && (
                     <button
                       onClick={() => handleUseHint(2)}
                       disabled={quiz.usedHints.hint2}
-                      className={`
-                        flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-200
-                        ${quiz.usedHints.hint2
-                          ? 'bg-gray-800 text-gray-500 border border-gray-700'
-                          : 'bg-orange-500/15 text-orange-300 border border-orange-500/40 hover:bg-orange-500/25'}
-                      `}
+                      className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ${
+                        quiz.usedHints.hint2
+                          ? 'border border-gray-800 bg-gray-900 text-gray-600'
+                          : 'border border-orange-500/40 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20'
+                      }`}
                     >
-                      {quiz.usedHints.hint2 ? 'Hint 2 used' : 'Use Hint 2'}
+                      {quiz.usedHints.hint2 ? 'Hint 2 used' : 'Hint 2'}
                     </button>
                   )}
                 </>
               )}
             </div>
 
-            <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-3 min-h-30">
-              {quiz.currentQuestion.hints && (
-                <div className="space-y-2">
-                  {quiz.usedHints.hint1 && quiz.currentQuestion.hints[0] && (
-                    <div className="text-sm text-gray-200">
-                      {quiz.currentQuestion.hints[0].hintText}
-                    </div>
-                  )}
-                  {quiz.usedHints.hint2 && quiz.currentQuestion.hints[1] && (
-                    <div className="text-sm text-gray-200">
-                      {quiz.currentQuestion.hints[1].hintText}
-                    </div>
-                  )}
-                  {!quiz.usedHints.hint1 && !quiz.usedHints.hint2 && (
-                    <p className="text-xs text-gray-500">Hint will appear here after you use it.</p>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Hint Display Area - Subtle when empty */}
+            {quiz.currentQuestion.hints && (
+              <div
+                className={`min-h-[60px] rounded-lg p-3 text-sm ${
+                  quiz.usedHints.hint1 || quiz.usedHints.hint2
+                    ? 'border border-gray-800/50 bg-gray-900/40 text-gray-200'
+                    : 'bg-transparent text-gray-600'
+                }`}
+              >
+                {quiz.usedHints.hint1 && quiz.currentQuestion.hints[0] && (
+                  <div className="mb-2">{quiz.currentQuestion.hints[0].hintText}</div>
+                )}
+                {quiz.usedHints.hint2 && quiz.currentQuestion.hints[1] && (
+                  <div>{quiz.currentQuestion.hints[1].hintText}</div>
+                )}
+                {!quiz.usedHints.hint1 && !quiz.usedHints.hint2 && (
+                  <p className="text-xs">Hints will appear here</p>
+                )}
+              </div>
+            )}
 
+            {/* Answer Input */}
             <div className="flex gap-3">
               <input
                 type="text"
@@ -272,12 +257,12 @@ const QuizRoomPage = () => {
                 onKeyPress={(e) => e.key === 'Enter' && handleSubmitAnswer()}
                 placeholder="Type your answer"
                 disabled={quiz.isSubmitting}
-                className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
+                className="flex-1 rounded-lg border border-gray-800 bg-gray-900/50 px-4 py-3 text-white placeholder-gray-600 outline-none transition focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20"
               />
               <button
                 onClick={handleSubmitAnswer}
                 disabled={!answer.trim() || quiz.isSubmitting}
-                className="px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition"
+                className="rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 px-6 py-3 font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-500/50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {quiz.isSubmitting ? 'Submitting…' : 'Submit'}
               </button>
@@ -285,18 +270,18 @@ const QuizRoomPage = () => {
           </div>
         </div>
 
-        {/* Right: Leaderboard, no page scroll above */}
-        <div className="col-span-12 lg:col-span-3 h-full flex flex-col min-h-0">
-          <div className="bg-gray-900/70 border border-gray-800 rounded-2xl shadow-xl h-full flex flex-col overflow-hidden">
+        {/* Leaderboard Sidebar */}
+        <div className="col-span-12 flex min-h-0 flex-col lg:col-span-3">
+          <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-800/50 bg-[#0d0e12] shadow-xl">
             <LiveLeaderboard
               participants={leaderboardState.entries}
               currentUserId={user?.id || ''}
               limit={15}
             />
-            <div className="p-4 border-t border-gray-800 shrink-0">
+            <div className="shrink-0 border-t border-gray-800/50 p-4">
               <button
                 onClick={handleViewFullLeaderboard}
-                className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-xl transition"
+                className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-700/50 hover:text-white"
               >
                 View Full Leaderboard
               </button>

@@ -1,64 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LeaderboardHeader } from '../components/leaderboard/LeaderboardHeader';
-import { LeaderboardSearch } from '../components/leaderboard/LeaderboardSearch';
-import { LeaderboardStats } from '../components/leaderboard/LeaderboardStats';
-import { LeaderboardTable } from '../components/leaderboard/LeaderboardTable';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logoutUser } from '../store/slices/authSlice';
-import {
-  requestTopLeaderboard,
-  requestAllLeaderboard,
-  refreshLeaderboard,
-} from '../store/slices/leaderboardSlice';
+import { requestAllLeaderboard } from '../store/slices/leaderboardSlice';
 
 const LeaderboardPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const leaderboardState = useAppSelector((state) => state.leaderboard);
-  const [search, setSearch] = useState('');
-  const {
-    entries: data,
-    status,
-    error,
-    view,
-    limit,
-    isRefreshing,
-    currentUserRank,
-  } = leaderboardState;
+  const { entries, status, error } = useAppSelector((state) => state.leaderboard);
 
   useEffect(() => {
-    if (data.length === 0) {
+    if (entries.length === 0) {
       dispatch(requestAllLeaderboard());
     }
-  }, [data.length, dispatch]);
-
-  const filtered = useMemo(() => {
-    if (!search) return data;
-    const q = search.toLowerCase();
-    return data.filter((entry) =>
-      (entry.name || '').toLowerCase().includes(q) || entry.email.toLowerCase().includes(q)
-    );
-  }, [data, search]);
-
-  const currentUserEntry = useMemo(
-    () => data.find((entry) => entry.id === user?.id),
-    [data, user?.id]
-  );
-
-  const handleViewChange = (nextView: 'top' | 'all') => {
-    if (nextView === view) return;
-    if (nextView === 'top') {
-      dispatch(requestTopLeaderboard({ limit }));
-    } else {
-      dispatch(requestAllLeaderboard());
-    }
-  };
-
-  const handleRefresh = () => {
-    dispatch(refreshLeaderboard({ userId: user?.id }));
-  };
+  }, [dispatch, entries.length]);
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
@@ -67,7 +23,7 @@ const LeaderboardPage = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
-      <div className="mx-auto max-w-6xl px-4 py-8 lg:py-12 space-y-8">
+      <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate('/dashboard')}
@@ -86,18 +42,10 @@ const LeaderboardPage = () => {
           </button>
         </div>
 
-        <LeaderboardHeader
-          title="Global Leaderboard"
-          subtitle="Rankings update automatically. Real-time sockets can be wired later."
-          totalCount={data.length}
-          view={view}
-          onViewChange={handleViewChange}
-          onRefresh={handleRefresh}
-          isLoading={status === 'loading'}
-          isRefreshing={isRefreshing}
-          currentUserName={user?.name || user?.email}
-          currentUserRank={currentUserRank}
-        />
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold">Leaderboard</h1>
+          <p className="text-sm text-gray-400">All competitors listed in order.</p>
+        </div>
 
         {error && (
           <div className="rounded-lg border border-red-600/40 bg-red-900/20 px-4 py-3 text-sm text-red-200">
@@ -105,20 +53,35 @@ const LeaderboardPage = () => {
           </div>
         )}
 
-        <LeaderboardStats
-          rank={currentUserRank}
-          points={currentUserEntry?.totalPoints || 0}
-          questionsSolved={currentUserEntry?.currentQuestionIndex || 0}
-        />
+        {status === 'loading' && entries.length === 0 ? (
+          <div className="flex items-center justify-center rounded-lg border border-gray-800 bg-[#0b0b0b] p-8 text-sm text-gray-300">
+            Loading leaderboard...
+          </div>
+        ) : null}
 
-        <div className="space-y-4">
-          <LeaderboardSearch value={search} onChange={setSearch} />
-          <LeaderboardTable
-            entries={filtered}
-            isLoading={status === 'loading'}
-            currentUserId={user?.id}
-          />
-        </div>
+        {entries.length > 0 ? (
+          <div className="divide-y divide-gray-800 overflow-hidden rounded-xl border border-gray-800 bg-[#0b0b0b] shadow-[0_25px_60px_rgba(0,0,0,0.35)]">
+            {entries.map((entry, index) => (
+              <div
+                key={entry.id}
+                className={`flex items-center justify-between px-4 py-3 text-sm transition hover:bg-emerald-500/5 ${
+                  entry.id === user?.id ? 'bg-emerald-500/10' : ''
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-semibold text-emerald-400">#{index + 1}</span>
+                  <span className="text-white font-medium">{entry.name || 'Anonymous'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {status !== 'loading' && entries.length === 0 ? (
+          <div className="flex items-center justify-center rounded-lg border border-gray-800 bg-[#0b0b0b] p-8 text-sm text-gray-400">
+            No leaderboard data yet.
+          </div>
+        ) : null}
       </div>
     </div>
   );

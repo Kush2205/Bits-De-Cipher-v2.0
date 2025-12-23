@@ -34,7 +34,7 @@ export const QuizRoomExample = () => {
         <LiveLeaderboard
           participants={leaderboard}
           currentUserId={user?.id || ''}
-          compact
+         
           limit={5}
         />
       </div>
