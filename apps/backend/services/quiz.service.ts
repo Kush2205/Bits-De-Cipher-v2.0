@@ -219,6 +219,26 @@ export const submitAnswer = async (
       return { isCorrect: false, alreadyAnswered: true , awardPoints:0 };
     }
 
+    //if submitting for right question check !!
+
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { currentQuestionIndex: true },
+    });
+
+    const expectedQuestion = await tx.question.findMany({
+      orderBy: { id: "asc" },
+      skip: user?.currentQuestionIndex,
+      take: 1,
+      select: { id: true },
+    });
+
+    if (!expectedQuestion[0] || expectedQuestion[0].id !== questionId) {
+      throw new Error("Invalid question order");
+    }
+
+
+
     const isCorrect =
       submittedText.trim().toLowerCase() ===
       question.correctAnswer.trim().toLowerCase();
