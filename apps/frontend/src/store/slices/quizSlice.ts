@@ -21,6 +21,7 @@ interface QuizState {
   isSubmitting: boolean;
   usedHints: { hint1: boolean; hint2: boolean };
   lastSubmitResult: SubmitAnswerResult | null;
+  hintLockMessage: string | null;
   error: string | null;
 }
 
@@ -32,6 +33,7 @@ const initialState: QuizState = {
   isSubmitting: false,
   usedHints: { hint1: false, hint2: false },
   lastSubmitResult: null,
+  hintLockMessage: null,
   error: null,
 };
 
@@ -78,10 +80,31 @@ export const submitAnswer = createAsyncThunk<
   }
 );
 
-export const useHint = createAsyncThunk<{ hintNumber: 1 | 2 },{ questionId: number; hintNumber: 1 | 2 }>('quiz/useHint', async ({ questionId, hintNumber }, { rejectWithValue }) => {
+type UseHintResponse =
+  | { hintNumber: 1 | 2; locked: true; message: string; unlocksAt?: string; remainingMs?: number }
+  | { hintNumber: 1 | 2; locked?: false; hintText?: string };
+
+export const useHint = createAsyncThunk<
+  UseHintResponse,
+  { questionId: number; hintNumber: 1 | 2 }
+>('quiz/useHint', async ({ questionId, hintNumber }, { rejectWithValue }) => {
   try {
-    await useHintApi({ questionId, hintNumber });
-    return { hintNumber };
+    const result = (await useHintApi({ questionId, hintNumber })) as any;
+    if (result?.locked) {
+      return {
+        hintNumber,
+        locked: true,
+        message: result.message || 'Hints will be unlocked soon',
+        unlocksAt: result.unlocksAt,
+        remainingMs: result.remainingMs,
+      };
+    }
+
+    return {
+      hintNumber,
+      locked: false,
+      hintText: result?.hintText,
+    };
   } catch (error: any) {
     const message = error?.response?.data?.message || 'Failed to use hint';
     return rejectWithValue(message);
@@ -98,6 +121,7 @@ const quizSlice = createSlice({
       state.isJoined = true;
       state.isJoining = false;
       state.error = null;
+      state.hintLockMessage = null;
       // Load hint usage from backend if available
       if (action.payload.hintUsage) {
         state.usedHints = {
@@ -119,6 +143,7 @@ const quizSlice = createSlice({
     },
     setCurrentQuestion(state, action: PayloadAction<BackendQuestion | null>) {
       state.currentQuestion = action.payload;
+      state.hintLockMessage = null;
     },
     setUserStats(state, action: PayloadAction<BackendUserStats | null>) {
       state.userStats = action.payload;
@@ -129,11 +154,15 @@ const quizSlice = createSlice({
     clearError(state) {
       state.error = null;
     },
+    clearHintLockMessage(state) {
+      state.hintLockMessage = null;
+    },
     clearLastSubmitResult(state) {
       state.lastSubmitResult = null;
     },
     resetHints(state) {
       state.usedHints = { hint1: false, hint2: false };
+      state.hintLockMessage = null;
     },
   },
   extraReducers: (builder) => {
@@ -171,6 +200,7 @@ const quizSlice = createSlice({
 
         if (action.payload.isCorrect && !action.payload.alreadyCompleted) {
           state.usedHints = { hint1: false, hint2: false };
+          state.hintLockMessage = null;
         }
       })
       .addCase(submitAnswer.rejected, (state, action) => {
@@ -178,10 +208,26 @@ const quizSlice = createSlice({
         state.error = (action.payload as string) || 'Failed to submit answer';
       })
       .addCase(useHint.fulfilled, (state, action) => {
+        if ((action.payload as any).locked) {
+          state.hintLockMessage = (action.payload as any).message || 'Hints will be unlocked soon';
+          return;
+        }
+
+        state.hintLockMessage = null;
+
         if (action.payload.hintNumber === 1) {
           state.usedHints.hint1 = true;
         } else {
           state.usedHints.hint2 = true;
+        }
+
+        // Inject hint text into current question if provided (backend hides until unlocked)
+        const hintText = (action.payload as any).hintText as string | undefined;
+        if (hintText && state.currentQuestion?.hints) {
+          const idx = state.currentQuestion.hints.findIndex((h) => h.number === action.payload.hintNumber);
+          if (idx !== -1) {
+            state.currentQuestion.hints[idx].hintText = hintText;
+          }
         }
       })
       .addCase(useHint.rejected, (state, action) => {
@@ -196,6 +242,7 @@ export const {
   setUserStats,
   setError,
   clearError,
+  clearHintLockMessage,
   clearLastSubmitResult,
   resetHints,
   setDisconnected,

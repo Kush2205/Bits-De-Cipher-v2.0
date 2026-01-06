@@ -39,6 +39,7 @@ model Question {
   userAnswers UserQuestionAnswer[]
   hints       Hint[]
   hintsData   UserHintsData[]
+  firstUserVisit DateTime?
   @@index([name])
 }
 

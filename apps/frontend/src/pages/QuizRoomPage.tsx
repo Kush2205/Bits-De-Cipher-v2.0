@@ -8,6 +8,7 @@ import {
   submitAnswer as submitAnswerThunk,
   useHint as useHintThunk,
   clearLastSubmitResult,
+  clearHintLockMessage,
 } from '../store/slices/quizSlice';
 import { refreshLeaderboard, requestAllLeaderboard } from '../store/slices/leaderboardSlice';
 
@@ -20,6 +21,19 @@ const QuizRoomPage = () => {
   const navigate = useNavigate();
   const [answer, setAnswer] = useState('');
   const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);
+
+  const formatInIST = (date: Date) => {
+    const formatted = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }).format(date);
+    return `${formatted} IST`;
+  };
 
   useEffect(() => {
     if (socketState.isConnected && !quiz.isJoined && !quiz.isJoining) {
@@ -58,7 +72,24 @@ const QuizRoomPage = () => {
   const handleUseHint = async (hintNumber: 1 | 2) => {
     if (!quiz.currentQuestion) return;
 
-    await dispatch(useHintThunk({ questionId: quiz.currentQuestion.id, hintNumber }));
+    const result = await dispatch(
+      useHintThunk({ questionId: quiz.currentQuestion.id, hintNumber })
+    ).unwrap();
+
+    if ('locked' in result && result.locked) {
+      const unlockDate = result.unlocksAt
+        ? new Date(result.unlocksAt)
+        : typeof result.remainingMs === 'number'
+          ? new Date(Date.now() + result.remainingMs)
+          : null;
+
+      const message = unlockDate
+        ? `Hints will be unlocked at ${formatInIST(unlockDate)}`
+        : result.message;
+
+      window.alert(message);
+      dispatch(clearHintLockMessage());
+    }
   };
 
   const handleLogout = async () => {
@@ -71,7 +102,7 @@ const QuizRoomPage = () => {
     setShowFullLeaderboard(true);
   };
 
-  const combinedError = quiz.error || leaderboardState.error || socketState.error;
+  const combinedError = leaderboardState.error || socketState.error;
 
   if (!socketState.isConnected) {
     return (
@@ -152,6 +183,13 @@ const QuizRoomPage = () => {
     );
   }
 
+  const basePoints = quiz.currentQuestion.points;
+  const minPoints = Math.floor(quiz.currentQuestion.maxPoints * 0.5);
+  let adjustedPoints = basePoints;
+  if (quiz.usedHints.hint1) adjustedPoints -= 0.15 * adjustedPoints;
+  if (quiz.usedHints.hint2) adjustedPoints -= 0.3 * adjustedPoints;
+  const displayPoints = Math.max(minPoints, Math.floor(adjustedPoints));
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#05060a]">
       {/* Navbar */}
@@ -186,7 +224,7 @@ const QuizRoomPage = () => {
             <div className="absolute left-4 top-4 rounded-lg border border-gray-700/50 bg-black/60 px-4 py-2 backdrop-blur">
               <p className="text-xs text-gray-400">Points</p>
               <p className="text-2xl font-bold leading-tight text-emerald-400">
-                {quiz.currentQuestion.points}
+                {displayPoints}
               </p>
             </div>
           </div>
@@ -230,7 +268,7 @@ const QuizRoomPage = () => {
             {/* Hint Display Area - Subtle when empty */}
             {quiz.currentQuestion.hints && (
               <div
-                className={`min-h-[60px] rounded-lg p-3 text-sm ${
+                className={`min-h-15 rounded-lg p-3 text-sm ${
                   quiz.usedHints.hint1 || quiz.usedHints.hint2
                     ? 'border border-gray-800/50 bg-gray-900/40 text-gray-200'
                     : 'bg-transparent text-gray-600'
@@ -262,7 +300,7 @@ const QuizRoomPage = () => {
               <button
                 onClick={handleSubmitAnswer}
                 disabled={!answer.trim() || quiz.isSubmitting}
-                className="rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 px-6 py-3 font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg bg-linear-to-br from-emerald-500 to-green-600 px-6 py-3 font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-500/50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {quiz.isSubmitting ? 'Submitting…' : 'Submit'}
               </button>

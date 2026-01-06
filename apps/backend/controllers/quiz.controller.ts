@@ -3,6 +3,7 @@ import {
   getQuestionByIndex,
   getUserStats,
   submitAnswer as submitAnswerService,
+  HintLockedError,
   useHint,
 } from '../services/quiz.service';
 
@@ -63,9 +64,17 @@ export const markHintUsed = async (req: Request, res: Response, next: NextFuncti
       return res.status(400).json({ message: 'questionId and hintNumber (1|2) are required' });
     }
 
-    const usage = await useHint(userId, qid, hintNumber);
-    res.json({ usage });
+    const result = await useHint(userId, qid, hintNumber);
+    res.json(result);
   } catch (error) {
+    if (error instanceof HintLockedError) {
+      return res.status(200).json({
+        locked: true,
+        message: error.message,
+        unlocksAt: error.unlocksAt.toISOString(),
+        remainingMs: error.remainingMs,
+      });
+    }
     next(error);
   }
 };

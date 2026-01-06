@@ -82,7 +82,7 @@ const seedDB = async () => {
     console.log("Starting database seeding...");
     await clearDatabase();
     await seedQuestions();
-    await seedUsers();
+    //await seedUsers();
     console.log("Database seeded successfully!");
 }
 

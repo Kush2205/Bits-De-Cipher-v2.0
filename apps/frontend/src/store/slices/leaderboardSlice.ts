@@ -45,10 +45,7 @@ export const fetchLeaderboard = createAsyncThunk<{ entries: LeaderboardEntry[]; 
   }
 });
 
-export const requestTopLeaderboard = createAsyncThunk<
-  void,
-  { limit?: number }
->('leaderboard/requestTop', async ({ limit }, { dispatch }) => {
+export const requestTopLeaderboard = createAsyncThunk<void,{ limit?: number }>('leaderboard/requestTop', async ({ limit }, { dispatch }) => {
   if (limit) {
     dispatch(setLimit(limit));
   }
