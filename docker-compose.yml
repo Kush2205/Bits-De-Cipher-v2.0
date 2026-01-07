@@ -1,19 +1,12 @@
 services:
-  postgres:
-    container_name: bits-de-cipher-postgres
-    image: postgres:17
-    ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_PASSWORD: postgres
+ 
 
   backend:
     container_name: bits-de-cipher-backend
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.backend
-    depends_on:
-      - postgres
+    
     ports:
       - '5000:5000'
     environment:
