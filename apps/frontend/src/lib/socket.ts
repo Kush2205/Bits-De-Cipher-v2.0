@@ -1,130 +1,112 @@
-/**
- * WebSocket Manager
- * 
- * Utility class for managing Socket.io connections and events.
- * 
- * Features to Implement:
- * 
- * 1. Connection Management:
- *    - Initialize socket connection
- *    - Handle authentication
- *    - Manage connection state
- *    - Implement reconnection logic
- * 
- * 2. Event Emitters:
- *    - Type-safe event emission
- *    - Error handling for emit failures
- *    - Acknowledgment callbacks
- * 
- * 3. Event Listeners:
- *    - Register event handlers
- *    - Remove event listeners
- *    - One-time event listeners
- * 
- * 4. Room Management:
- *    - Join quiz session rooms
- *    - Leave rooms
- *    - Subscribe to channels
- * 
- * 5. Connection Events:
- *    - Handle connect event
- *    - Handle disconnect event
- *    - Handle reconnect event
- *    - Handle error events
- * 
- * Example Usage:
- * import { socketManager } from './lib/socket';
- * 
- * // Connect
- * socketManager.connect(token);
- * 
- * // Join room
- * socketManager.joinQuizSession(sessionId);
- * 
- * // Listen to events
- * socketManager.on('leaderboard-update', (data) => {
- *   updateLeaderboard(data);
- * });
- * 
- * // Emit events
- * socketManager.emit('submit-answer', {
- *   sessionId,
- *   questionId,
- *   selectedOption
- * });
- * 
- * // Cleanup
- * socketManager.disconnect();
- */
+import { io, Socket } from 'socket.io-client';
 
-// import { io, Socket } from 'socket.io-client';
-
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 class SocketManager {
-  private socket: any = null;
-  private isConnected: boolean = false;
+  private socket: Socket | null = null;
+  private isConnected = false;
 
-  // TODO: Initialize connection
   connect(token: string) {
-    // this.socket = io(SOCKET_URL, {
-    //   auth: { token }
-    // });
-    
-    // Setup event listeners
-    // this.socket.on('connect', this.handleConnect);
-    // this.socket.on('disconnect', this.handleDisconnect);
+    if (this.socket?.connected) {
+      return this.socket;
+    }
+
+    this.socket = io(SOCKET_URL, {
+      auth: {
+        token: token
+      },
+      extraHeaders: {
+        Authorization: `Bearer ${token}`
+      },
+      query: {
+        token: token
+      },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+      autoConnect: true,
+      withCredentials: true,
+    });
+
+    this.socket.on('connect', () => {
+      this.isConnected = true;
+    });
+
+    this.socket.on('disconnect', () => {
+      this.isConnected = false;
+    });
+
+    this.socket.on('connect_error', (error) => {
+      this.isConnected = false;
+      console.error('Socket connection error:', error.message);
+    });
+
+    this.socket.on('error', (error) => {
+      console.error('Socket error:', error);
+    });
+
+    this.socket.io.on('reconnect_attempt', (attempt) => {
+      console.log(`Reconnection attempt ${attempt}...`);
+    });
+
+    this.socket.io.on('reconnect', (attempt) => {
+      console.log(`Reconnected after ${attempt} attempts`);
+    });
+
+    return this.socket;
   }
 
-  // TODO: Disconnect
   disconnect() {
-    // this.socket?.disconnect();
-    this.isConnected = false;
-  }
-
-  // TODO: Emit event
-  emit(event: string, data?: any, callback?: (response: any) => void) {
-    // this.socket?.emit(event, data, callback);
-  }
-
-  // TODO: Listen to event
-  on(event: string, handler: (data: any) => void) {
-    // this.socket?.on(event, handler);
-  }
-
-  // TODO: Remove listener
-  off(event: string, handler?: (data: any) => void) {
-    // this.socket?.off(event, handler);
-  }
-
-  // TODO: Join quiz session
-  joinQuizSession(sessionId: string) {
-    this.emit('join-quiz-session', { sessionId });
-  }
-
-  // TODO: Subscribe to leaderboard
-  subscribeToLeaderboard(type: 'global' | 'quiz', quizId?: string) {
-    if (type === 'global') {
-      this.emit('subscribe-global-leaderboard');
-    } else if (type === 'quiz' && quizId) {
-      this.emit('subscribe-quiz-leaderboard', { quizId });
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+      this.isConnected = false;
     }
   }
 
-  // Connection handlers
-  private handleConnect = () => {
-    this.isConnected = true;
-    console.log('Socket connected');
-  };
+  emit(event: string, data?: any, callback?: (response: any) => void) {
+    if (!this.socket) {
+      return;
+    }
+    
+    if (callback) {
+      this.socket.emit(event, data, callback);
+    } else if (data !== undefined) {
+      this.socket.emit(event, data);
+    } else {
+      this.socket.emit(event);
+    }
+  }
 
-  private handleDisconnect = () => {
-    this.isConnected = false;
-    console.log('Socket disconnected');
-  };
+  on(event: string, handler: (data: any) => void) {
+    if (!this.socket) {
+      return;
+    }
+    this.socket.on(event, handler);
+  }
 
-  getConnectionStatus() {
-    return this.isConnected;
+  off(event: string, handler?: (data: any) => void) {
+    if (!this.socket) {
+      return;
+    }
+    if (handler) {
+      this.socket.off(event, handler);
+    } else {
+      this.socket.off(event);
+    }
+  }
+
+  getSocket(): Socket | null {
+    return this.socket;
+  }
+
+  getConnectionStatus(): boolean {
+    return this.isConnected && this.socket?.connected === true;
   }
 }
 
 export const socketManager = new SocketManager();
+export default socketManager;

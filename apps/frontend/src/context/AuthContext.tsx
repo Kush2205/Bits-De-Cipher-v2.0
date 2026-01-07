@@ -1,17 +1,7 @@
 
 import { createContext, useState, useEffect, type ReactNode } from 'react';
 import * as authService from '../services/auth.service';
-
-interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  googleId?: string | null;
-  totalPoints: number;
-  currentQuestionIndex: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { User } from '../types/user.types';
 
 interface AuthContextType {
   user: User | null;
@@ -83,10 +73,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
-    await authService.logout();
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setUser(null);
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      setUser(null);
+      // Force page reload to clear all state
+      window.location.href = '/login';
+    }
   };
 
   const refreshTokenFn = async () => {

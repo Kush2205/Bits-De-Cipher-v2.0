@@ -1,11 +1,4 @@
-/**
- * TypeScript Type Definitions
- * 
- * Shared types and interfaces for the frontend application.
- * These should match the backend API response structures.
- */
 
-// User Types
 export interface User {
   id: string;
   email: string;
@@ -15,7 +8,6 @@ export interface User {
   updatedAt: Date;
 }
 
-// Authentication Types
 export interface AuthTokens {
   accessToken: string;
   refreshToken?: string;
@@ -28,12 +20,11 @@ export interface AuthResponse {
   refreshToken?: string;
 }
 
-// Quiz Types
 export interface Quiz {
   id: string;
   title: string;
   description: string | null;
-  duration: number; // in seconds
+  duration: number; 
   questionCount: number;
   isPublished: boolean;
   createdAt: Date;
@@ -57,10 +48,9 @@ export interface QuizOption {
 }
 
 export interface QuestionWithAnswer extends Question {
-  correctAnswer: number; // Index of correct option
+  correctAnswer: number; 
 }
 
-// Quiz Session Types
 export interface QuizSession {
   id: string;
   quizId: string;
@@ -86,11 +76,10 @@ export interface Answer {
   selectedOption: number;
   isCorrect: boolean;
   points: number;
-  timeTaken: number; // in seconds
+  timeTaken: number;
   answeredAt: Date;
 }
 
-// Leaderboard Types
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
@@ -119,34 +108,56 @@ export interface QuizHistory {
   completedAt: Date;
 }
 
-// WebSocket Event Types
-export interface SocketEvents {
-  // Client → Server
-  'join-quiz-session': { sessionId: string };
-  'submit-answer': {
-    sessionId: string;
-    questionId: string;
-    selectedOption: number;
-    timeTaken: number;
-  };
-  'request-leaderboard': { sessionId: string };
-  'quiz-complete': { sessionId: string };
-  'subscribe-global-leaderboard': void;
-  'subscribe-quiz-leaderboard': { quizId: string };
-
-  // Server → Client
-  'participant-joined': { userId: string; name: string };
-  'answer-result': { correct: boolean; score: number; correctAnswer: number };
-  'leaderboard-update': LeaderboardEntry[];
-  'leaderboard-data': LeaderboardEntry[];
-  'quiz-results': any;
-  'participant-finished': { userId: string; name: string };
-  'global-leaderboard-update': LeaderboardEntry[];
-  'quiz-leaderboard-update': LeaderboardEntry[];
-  'rank-change': { newRank: number; oldRank: number };
+export interface BackendQuestion {
+  id: number;
+  name: string;
+  imageUrl: string | null;
+  points: number;
+  maxPoints: number;
+  hints: Array<{
+    id: number;
+    number: number;
+    hintText: string;
+  }>;
+  createdAt: Date;
 }
 
-// API Response Types
+export interface BackendUserStats {
+  totalPoints: number;
+  currentQuestionIndex: number;
+  name: string | null;
+  email: string;
+}
+
+export interface BackendLeaderboardEntry {
+  id: string;
+  name: string | null;
+  email: string;
+  totalPoints: number;
+  currentQuestionIndex: number;
+}
+
+export interface InitialDataPayload {
+  currentQuestion: BackendQuestion | null;
+  userStats: BackendUserStats;
+  leaderboard: BackendLeaderboardEntry[];
+  hintUsage?: { hint1Used: boolean; hint2Used: boolean };
+}
+
+export interface LeaderboardUpdatePayload {
+  userId: string;
+  awardedPoints: number;
+  totalPoints: number;
+}
+
+export interface LeaderboardDataPayload {
+  leaderboard: BackendLeaderboardEntry[];
+}
+
+export interface SocketErrorPayload {
+  message: string;
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
