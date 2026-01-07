@@ -15,7 +15,6 @@ export const createUser = async (email: string, hashedPassword: string, name?: s
         googleId: true,
         totalPoints: true,
         currentQuestionIndex: true,
-        // createdAt: true,
         updatedAt: true,
       }
     });
