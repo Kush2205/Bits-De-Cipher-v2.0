@@ -186,21 +186,24 @@ const quizSlice = createSlice({
         state.isSubmitting = false;
         state.lastSubmitResult = action.payload;
 
-        if (action.payload.nextQuestion !== undefined) {
-          state.currentQuestion = action.payload.nextQuestion ?? null;
+        if (action.payload.isCorrect && !action.payload.alreadyCompleted) {
+          if (action.payload.nextQuestion) {
+            state.currentQuestion = action.payload.nextQuestion;
+          } else {
+            state.currentQuestion = null;
+          }
+
+          state.usedHints = { hint1: false, hint2: false };
+          state.hintLockMessage = null;
         }
 
         if (state.userStats) {
           state.userStats = {
             ...state.userStats,
             totalPoints: action.payload.totalPoints ?? state.userStats.totalPoints,
-            currentQuestionIndex: action.payload.currentQuestionIndex ?? state.userStats.currentQuestionIndex,
+            currentQuestionIndex:
+              action.payload.currentQuestionIndex ?? state.userStats.currentQuestionIndex,
           };
-        }
-
-        if (action.payload.isCorrect && !action.payload.alreadyCompleted) {
-          state.usedHints = { hint1: false, hint2: false };
-          state.hintLockMessage = null;
         }
       })
       .addCase(submitAnswer.rejected, (state, action) => {

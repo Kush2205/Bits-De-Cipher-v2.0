@@ -43,7 +43,7 @@ export const LoginForm = () => {
 
   return (
     <div className="w-full space-y-6">
-      <div className="text-center">
+      <div className="text-center"> 
         <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
         <p className="mt-2 text-sm text-gray-300">Enter your credentials to join the live contest.</p>
       </div>

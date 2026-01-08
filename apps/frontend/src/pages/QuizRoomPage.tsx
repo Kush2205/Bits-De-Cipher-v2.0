@@ -21,6 +21,7 @@ const QuizRoomPage = () => {
   const navigate = useNavigate();
   const [answer, setAnswer] = useState('');
   const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);
+  const [shake, setShake] = useState(false);
 
   const formatInIST = (date: Date) => {
     const formatted = new Intl.DateTimeFormat('en-IN', {
@@ -48,6 +49,30 @@ const QuizRoomPage = () => {
       dispatch(refreshLeaderboard({ userId: user?.id }));
     }
   }, [dispatch, quiz.currentQuestion?.id, user?.id]);
+
+  useEffect(() => {
+    if (quiz.lastSubmitResult && !quiz.lastSubmitResult.isCorrect) {
+      const timer = setTimeout(() => {
+        dispatch(clearLastSubmitResult());
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [quiz.lastSubmitResult, dispatch]);
+
+  useEffect(() => {
+    if (quiz.lastSubmitResult && !quiz.lastSubmitResult.isCorrect) {
+      setShake(true);
+
+      const timer = setTimeout(() => {
+        setShake(false);
+      }, 400); // slightly more than animation duration
+
+      return () => clearTimeout(timer);
+    }
+  }, [quiz.lastSubmitResult]);
+
+
 
   const handleSubmitAnswer = async () => {
     if (!quiz.currentQuestion || !answer.trim() || quiz.isSubmitting) {
@@ -189,6 +214,7 @@ const QuizRoomPage = () => {
   if (quiz.usedHints.hint1) adjustedPoints -= 0.15 * adjustedPoints;
   if (quiz.usedHints.hint2) adjustedPoints -= 0.3 * adjustedPoints;
   const displayPoints = Math.max(minPoints, Math.floor(adjustedPoints));
+  const isWrong = quiz.lastSubmitResult && !quiz.lastSubmitResult.isCorrect;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#05060a]">
@@ -286,6 +312,7 @@ const QuizRoomPage = () => {
               </div>
             )}
 
+            
             {/* Answer Input */}
             <div className="flex gap-3">
               <input
@@ -293,10 +320,16 @@ const QuizRoomPage = () => {
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSubmitAnswer()}
-                placeholder="Type your answer"
-                disabled={quiz.isSubmitting}
-                className="flex-1 rounded-lg border border-gray-800 bg-gray-900/50 px-4 py-3 text-white placeholder-gray-600 outline-none transition focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20"
+                className={`flex-1 rounded-lg px-4 py-3 text-white outline-none transition
+                  ${
+                    isWrong
+                      ? 'border border-red-500 focus:ring-red-500/30'
+                      : 'border border-gray-800 focus:ring-emerald-500/20'
+                  }
+                  ${shake ? 'animate-shake border border-red-500' : 'border border-gray-800 bg-gray-900/50'}
+                `}
               />
+
               <button
                 onClick={handleSubmitAnswer}
                 disabled={!answer.trim() || quiz.isSubmitting}
@@ -310,11 +343,11 @@ const QuizRoomPage = () => {
 
         {/* Leaderboard Sidebar */}
         <div className="col-span-12 flex min-h-0 flex-col lg:col-span-3">
-          <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-800/50 bg-[#0d0e12] shadow-xl">
+          <div className="flex h-full flex-col rounded-2xl border border-gray-800/50 bg-[#0d0e12] shadow-xl">
             <LiveLeaderboard
               participants={leaderboardState.entries}
               currentUserId={user?.id || ''}
-              limit={15}
+              limit={10}
             />
             <div className="shrink-0 border-t border-gray-800/50 p-4">
               <button
