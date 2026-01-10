@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+console.log(process.env.DATABASE_URL); 
 import prisma from "@repo/db/client";
 import bcrypt from 'bcrypt';
 
@@ -40,11 +43,11 @@ const seedQuestions = async () => {
                     create: [
                         {
                             hintText: `This is hint 1 for question ${index + 1}`,
-                            name: `Hint 1`
+                            number: 1
                         },
                         {
                             hintText: `This is hint 2 for question ${index + 1}`,
-                            name: `Hint 2`
+                            number: 2
                         }
                     ]
                 }
@@ -80,9 +83,9 @@ const seedUsers = async () => {
 
 const seedDB = async () => {
     console.log("Starting database seeding...");
-    await clearDatabase();
+    //await clearDatabase();
     await seedQuestions();
-    await seedUsers();
+    //await seedUsers();
     console.log("Database seeded successfully!");
 }
 

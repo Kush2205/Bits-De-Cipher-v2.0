@@ -48,9 +48,9 @@ import type { ZodSchema } from "zod";
 export const validate = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse({
+        schema.safeParse({
         body: req.body,
-        params: req.params,
+        params: req.params, 
         query: req.query,
       });
 
@@ -69,9 +69,6 @@ export const validate = (schema: ZodSchema) => {
 };
 
 
-
-
-//schema hain different cheezo ka
 export const signupSchema = z.object({
   body: z.object({
     email: z

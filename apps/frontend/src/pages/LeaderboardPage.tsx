@@ -1,84 +1,88 @@
-/**
- * Leaderboard Page Component
- * 
- * Global and quiz-specific leaderboards with real-time updates.
- * 
- * Features to Implement:
- * 
- * 1. Tab Navigation:
- *    - "Global Leaderboard" tab
- *    - "Quiz Leaderboards" tab
- *    - Switch between views
- * 
- * 2. Global Leaderboard:
- *    - Fetch from GET /leaderboard/global
- *    - Display top 100 users
- *    - Show: rank, name, total score, quizzes taken
- *    - Highlight current user's position
- *    - Real-time updates via WebSocket
- * 
- * 3. Quiz-Specific Leaderboard:
- *    - List all quizzes with dropdown/tabs
- *    - Fetch from GET /leaderboard/quiz/:quizId
- *    - Show top scores for selected quiz
- *    - Display: rank, name, score, time taken
- * 
- * 4. User Search/Filter:
- *    - Search for specific user
- *    - Filter by time period (optional)
- *    - Pagination for large lists
- * 
- * 5. Current User Highlight:
- *    - Scroll to and highlight user's position
- *    - Show rank badge if top 10
- *    - Display rank change indicator (↑↓)
- * 
- * 6. WebSocket Integration:
- *    - Subscribe to leaderboard updates
- *    - Emit 'subscribe-global-leaderboard'
- *    - Listen for 'global-leaderboard-update'
- *    - Smoothly update rankings without jarring UI
- * 
- * 7. Visual Design:
- *    - Trophy icons for top 3
- *    - Different colors for rank tiers
- *    - Animated rank changes
- *    - Responsive table/card layout
- * 
- * Example Structure:
- * <div className="leaderboard-page">
- *   <h1>Leaderboard</h1>
- *   
- *   <Tabs>
- *     <Tab label="Global">
- *       <GlobalLeaderboard entries={globalLeaderboard} />
- *     </Tab>
- *     <Tab label="By Quiz">
- *       <QuizSelector onChange={setSelectedQuiz} />
- *       <QuizLeaderboard entries={quizLeaderboard} />
- *     </Tab>
- *   </Tabs>
- *   
- *   <LeaderboardTable 
- *     entries={leaderboard}
- *     currentUserId={userId}
- *   />
- * </div>
- */
-
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { logoutUser } from '../store/slices/authSlice';
+import { requestAllLeaderboard } from '../store/slices/leaderboardSlice';
 
 const LeaderboardPage = () => {
-  // TODO: Fetch leaderboard data
-  // TODO: Connect to WebSocket for live updates
-  // TODO: Implement tab navigation
-  // TODO: Add search/filter functionality
-  // TODO: Handle pagination
-  
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const { entries, status, error } = useAppSelector((state) => state.leaderboard);
+
+  useEffect(() => {
+    if (entries.length === 0) {
+      dispatch(requestAllLeaderboard());
+    }
+  }, [dispatch, entries.length]);
+
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    navigate('/login');
+  };
+
   return (
-    <div>
-      <h1>Leaderboard</h1>
-      {/* Implementation here */}
+    <div className="min-h-screen bg-[#050505] text-white">
+      <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900/80 px-3 py-2 text-sm text-gray-300 transition hover:border-emerald-500 hover:text-white"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+          <button
+            onClick={handleLogout}
+            className="rounded-lg border border-gray-800 bg-gray-900/80 px-3 py-2 text-sm text-gray-300 transition hover:border-emerald-500 hover:text-white"
+          >
+            Logout
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold">Leaderboard</h1>
+          <p className="text-sm text-gray-400">All competitors listed in order.</p>
+        </div>
+
+        {error && (
+          <div className="rounded-lg border border-red-600/40 bg-red-900/20 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
+
+        {status === 'loading' && entries.length === 0 ? (
+          <div className="flex items-center justify-center rounded-lg border border-gray-800 bg-[#0b0b0b] p-8 text-sm text-gray-300">
+            Loading leaderboard...
+          </div>
+        ) : null}
+
+        {entries.length > 0 ? (
+          <div className="divide-y divide-gray-800 overflow-hidden rounded-xl border border-gray-800 bg-[#0b0b0b] shadow-[0_25px_60px_rgba(0,0,0,0.35)]">
+            {entries.map((entry, index) => (
+              <div
+                key={entry.id}
+                className={`flex items-center justify-between px-4 py-3 text-sm transition hover:bg-emerald-500/5 ${
+                  entry.id === user?.id ? 'bg-emerald-500/10' : ''
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-semibold text-emerald-400">#{index + 1}</span>
+                  <span className="text-white font-medium">{entry.name || 'Anonymous'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {status !== 'loading' && entries.length === 0 ? (
+          <div className="flex items-center justify-center rounded-lg border border-gray-800 bg-[#0b0b0b] p-8 text-sm text-gray-400">
+            No leaderboard data yet.
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 };

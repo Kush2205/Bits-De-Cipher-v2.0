@@ -1,96 +1,80 @@
-/**
- * Quiz Controllers
- * 
- * Business logic for quiz operations.
- * 
- * getAllQuizzes(req, res, next):
- * - Extract pagination params (page, limit) from query
- * - Fetch published quizzes from database
- * - Return paginated list with total count
- * - Include question count but not questions themselves
- * 
- * getQuizById(req, res, next):
- * - Extract quizId from req.params
- * - Fetch quiz with questions and options
- * - Remove correctAnswer from response (security)
- * - Return quiz details
- * 
- * createQuiz(req, res, next):
- * - Extract quiz data from req.body
- * - Validate admin role (should be checked by middleware)
- * - Create quiz with nested questions via QuizService
- * - Return created quiz
- * 
- * updateQuiz(req, res, next):
- * - Extract quizId and update data
- * - Verify quiz exists and user is admin
- * - Update quiz via QuizService
- * - Handle question updates (add/remove/modify)
- * 
- * deleteQuiz(req, res, next):
- * - Extract quizId
- * - Verify admin role
- * - Delete quiz (consider soft delete)
- * - Return success message
- * 
- * startQuizSession(req, res, next):
- * - Extract quizId and userId from req
- * - Check if quiz exists and is published
- * - Create QuizSession record (status: 'in_progress')
- * - Create QuizParticipant record
- * - Return sessionId for WebSocket connection
- * 
- * submitAnswer(req, res, next):
- * - Extract sessionId, questionId, selectedOption, timeTaken
- * - Verify session belongs to user
- * - Check if question already answered (prevent duplicate)
- * - Fetch correct answer from database
- * - Calculate score (correct? points : 0, bonus for speed)
- * - Create Answer record
- * - Update participant score
- * - Emit WebSocket event for leaderboard update
- * - Return { correct: boolean, score: number }
- * 
- * getSessionResults(req, res, next):
- * - Extract sessionId
- * - Verify session belongs to user or is completed
- * - Fetch all answers with correct/incorrect
- * - Calculate final score and statistics
- * - Return detailed results
- */
+import { Request, Response, NextFunction } from 'express';
+import {
+  getQuestionByIndex,
+  getUserStats,
+  submitAnswer as submitAnswerService,
+  HintLockedError,
+  useHint,
+} from '../services/quiz.service';
 
-import { type NextFunction } from 'express';
+export const getCurrentQuestion = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.userId as string;
+    const userStats = await getUserStats(userId);
+    
+    if (!userStats) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-// TODO: Implement controller functions
+    const question = await getQuestionByIndex(userStats.currentQuestionIndex);
 
-export const getAllQuizzes = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
-};
+    if (!question) {
+      return res.status(404).json({ message: 'No more questions available' });
+    }
 
-export const getQuizById = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
-};
-
-export const createQuiz = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
-};
-
-export const updateQuiz = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
-};
-
-export const deleteQuiz = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
-};
-
-export const startQuizSession = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+    res.json({ question });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const submitAnswer = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+  try {
+    const userId = req.userId as string;
+    const { questionId, submittedText, usedHint1 = false, usedHint2 = false } = req.body;
+
+    const qid = Number(questionId);
+
+    if (!qid || !submittedText) {
+      return res.status(400).json({ message: 'questionId and submittedText are required' });
+    }
+
+    const result = await submitAnswerService({
+      userId,
+      questionId: qid,
+      submittedText,
+      usedHint1,
+      usedHint2,
+    });
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const getSessionResults = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+export const markHintUsed = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.userId as string;
+    const { questionId, hintNumber } = req.body;
+
+    const qid = Number(questionId);
+
+    if (!qid || (hintNumber !== 1 && hintNumber !== 2)) {
+      return res.status(400).json({ message: 'questionId and hintNumber (1|2) are required' });
+    }
+
+    const result = await useHint(userId, qid, hintNumber);
+    res.json(result);
+  } catch (error) {
+    if (error instanceof HintLockedError) {
+      return res.status(200).json({
+        locked: true,
+        message: error.message,
+        unlocksAt: error.unlocksAt.toISOString(),
+        remainingMs: error.remainingMs,
+      });
+    }
+    next(error);
+  }
 };

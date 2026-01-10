@@ -3,8 +3,13 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/socket.io": "^3.0.2"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -26,6 +31,7 @@
     "jsonwebtoken": "^9.0.3",
     "socket.io": "^4.8.1",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "socket.io": "^4.8.1"
   }
 }

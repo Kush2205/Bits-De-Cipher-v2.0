@@ -1,61 +1,29 @@
-/**
- * Leaderboard Service
- * 
- * API calls for leaderboard and ranking operations.
- * 
- * Functions:
- * - getGlobalLeaderboard(limit): Fetch global top scores
- * - getQuizLeaderboard(quizId, limit): Get quiz-specific rankings
- * - getSessionLeaderboard(sessionId): Get live session rankings
- * - getUserStats(userId): Get user statistics and rank
- * 
- * Each function returns a Promise with typed response data.
- */
-
 import api from '../lib/api';
+import type { LeaderboardEntry, LeaderboardResponse } from '../types/leaderboard';
 
-interface LeaderboardEntry {
-  rank: number;
-  userId: string;
-  name: string;
-  score: number;
-  timeTaken?: number;
-  quizzesTaken?: number;
-}
+const normalizeResponse = (data: LeaderboardResponse): LeaderboardEntry[] => data.leaderboard || [];
 
-interface UserStats {
-  userId: string;
-  globalRank: number;
-  totalScore: number;
-  averageScore: number;
-  quizzesTaken: number;
-  quizHistory: any[];
-}
-
-// Get global leaderboard
-export const getGlobalLeaderboard = async (limit: number = 100) => {
-  const response = await api.get('/leaderboard/global', {
-    params: { limit }
+export const fetchTopLeaderboard = async (limit: number = 15): Promise<LeaderboardEntry[]> => {
+  const { data } = await api.get<LeaderboardResponse>('/leaderboard', {
+    params: { limit },
   });
-  return response.data;
+
+  return normalizeResponse(data);
 };
 
-// Get quiz-specific leaderboard
-export const getQuizLeaderboard = async (quizId: string, limit: number = 100) => {
-  const response = await api.get(`/leaderboard/quiz/${quizId}`, {
-    params: { limit }
-  });
-  return response.data;
+export const fetchFullLeaderboard = async (): Promise<LeaderboardEntry[]> => {
+  const { data } = await api.get<LeaderboardResponse>('/leaderboard/all');
+
+  return normalizeResponse(data);
 };
 
-// Get live session leaderboard
-export const getSessionLeaderboard = async (sessionId: string) => {
-  const response = await api.get(`/leaderboard/session/${sessionId}`);
-  return response.data;
-};
+export const fetchLeaderboardByView = async (
+  view: 'top' | 'all',
+  limit?: number
+): Promise<LeaderboardEntry[]> => {
+  if (view === 'all') {
+    return fetchFullLeaderboard();
+  }
 
-// Get user statistics
-export const getUserStats = async (userId: string): Promise<UserStats> => {
-  const response = await api.get(`/leaderboard/user/${userId}`);
-  return response.data;
+  return fetchTopLeaderboard(limit);
 };

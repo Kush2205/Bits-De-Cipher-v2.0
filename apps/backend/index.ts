@@ -2,38 +2,39 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
-import leaderboardRoutes from "./routes/leaderboard.routes"
+import quizRoutes from './routes/quiz.routes';
+import leaderboardRoutes from './routes/leaderboard.routes';
+import { createServer } from 'http';
+import { initSocket } from './socket';
+import { socketAuthMiddleware } from './middleware/socket.auth.middleware';
+import { setupSockets } from './sockets/contest.socket';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const httpServer = createServer(app);
 
-// Middleware setup
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
 }));
 app.use(express.json());
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
-// Route setup
 app.use('/api/auth', authRoutes);
+app.use('/api/quiz', quizRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: err.message || 'Internal server error',
-  });
-});
+const io = initSocket(httpServer);
 
-app.listen(PORT, () => {
+io.use(socketAuthMiddleware);
+
+setupSockets(io);
+
+httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

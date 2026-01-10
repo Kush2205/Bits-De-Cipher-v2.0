@@ -1,4 +1,3 @@
-
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
@@ -9,7 +8,6 @@ declare global {
     }
   }
 }
-
 
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   try {
