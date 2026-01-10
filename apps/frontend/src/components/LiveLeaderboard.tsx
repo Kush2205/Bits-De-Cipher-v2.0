@@ -8,9 +8,7 @@ interface LiveLeaderboardProps {
 }
 
 const LiveLeaderboard = ({ participants, currentUserId, limit, isLoading }: LiveLeaderboardProps) => {
-  const sortedParticipants = [...participants].sort(
-    (a, b) => b.totalPoints - a.totalPoints
-  );
+  const sortedParticipants = participants;
 
   let entries = sortedParticipants;
 
