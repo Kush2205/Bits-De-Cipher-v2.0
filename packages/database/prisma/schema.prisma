@@ -1,92 +1,87 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
-//@ts-expect-error
+
 datasource db {
   provider = "postgresql"
 }
 
 
 model User {
-  id              String                @id @default(cuid())
-  email           String                @unique
-  name            String?
-  password        String?               
-  role            String                @default("user") 
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  accounts        Account[]             
-  answeredQuestions UserQuestionAnswer[] 
-  
-  @@index([email])
+  id                     String    @id @default(uuid())
+  email                  String    @unique
+  name                   String?
+  passwordHash           String?   
+  googleId               String?   @unique
+  refreshTokenHash       String?   
+  totalPoints            Int       @default(0)
+  currentQuestionIndex   Int       @default(0)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  userAnswers            UserQuestionAnswer[]
+  hintsData              UserHintsData[]
+ 
+  @@index([googleId])
 }
 
-
-model Account {
-  id           String    @id @default(cuid())
-  userId       String
-  provider     String    
-  providerId   String    
-  accessToken  String?
-  refreshToken String?
-  expiresAt    DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([provider, providerId])
-  @@index([userId])
-}
 
 model Question {
   id          Int               @id @default(autoincrement())
-  name        String                @unique
+  name        String                
   imageUrl    String?
   points      Int                   
-  maxPoints   Int                   
+  maxPoints   Int
+  correctAnswer  String         @default("answer")                   
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
   userAnswers UserQuestionAnswer[]
   hints       Hint[]
+  hintsData   UserHintsData[]
+  firstUserVisit DateTime?
   @@index([name])
 }
 
-model Hint{
-  id        Int       @id @default(autoincrement())
-  questionId Int
+model Hint {
+  id           Int       @id @default(autoincrement())
+  number       Int    
+  questionId   Int
   hintText  String    @default("")
-  used      Boolean?     @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now())
   usedAt    DateTime?
   question  Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  @@unique([questionId, number])
+}
+
+model UserHintsData{
+  id           Int         @id @default(autoincrement())
+  userId       String
+  questionId   Int
+  hint1Used    Boolean     @default(false)
+  hint2Used    Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question     Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
 model UserQuestionAnswer {
   id              Int   @id @default(autoincrement())
   userId          String
   questionId      Int
-  pointsEarned    Int      
-  isCorrect       Boolean  
-  timeTaken       Int?     
-  attemptNumber   Int      @default(1) 
-  answeredAt      DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  
-  
-  @@index([userId])
+  user            User     @relation(fields: [userId], references: [id])
+  question        Question @relation(fields: [questionId], references: [id])
+  submittedText   String
+  isCorrect       Boolean
+  awardedPoints   Int
+  usedHint1       Boolean  @default(false)
+  usedHint2       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+   
+   
   @@index([questionId])
-  @@index([userId, questionId])
-  @@index([answeredAt])
 }
-
-

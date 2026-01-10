@@ -1,0 +1,13 @@
+services:
+ 
+
+  backend:
+    container_name: bits-de-cipher-backend
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.backend
+    
+    ports:
+      - '5000:5000'
+    environment:
+      DATABASE_URL: ${DATABASE_URL}

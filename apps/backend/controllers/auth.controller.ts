@@ -1,73 +1,223 @@
-/**
- * Authentication Controllers
- * 
- * Business logic for authentication operations.
- * Controllers call services to interact with database.
- * 
- * signup(req, res, next):
- * - Extract email, password, name from req.body
- * - Check if user with email already exists
- * - Hash password using bcrypt
- * - Create user via AuthService
- * - Generate JWT token
- * - Return { success: true, user, token }
- * 
- * login(req, res, next):
- * - Extract email, password from req.body
- * - Find user by email
- * - Verify password using bcrypt.compare()
- * - If invalid, return 401
- * - Generate JWT token
- * - Return { success: true, user, token }
- * 
- * googleOAuthCallback(req, res, next):
- * - Extract Google profile from req.user (set by Passport)
- * - Call AuthService.findOrCreateOAuthUser()
- * - Generate JWT token
- * - Redirect to frontend with token
- * - Frontend URL: FRONTEND_URL/auth/callback?token=<jwt>
- * 
- * refreshToken(req, res, next):
- * - Extract refresh token from req.body
- * - Verify refresh token
- * - Generate new access token
- * - Return new tokens
- * 
- * getCurrentUser(req, res, next):
- * - Get userId from req.user (set by authMiddleware)
- * - Fetch user data from database
- * - Return user without sensitive fields (password)
- * 
- * logout(req, res, next):
- * - Clear server-side session if applicable
- * - Return success message
- * - Client handles token removal
- */
+import type { Request, Response, NextFunction } from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 
-import { Request , Response , NextFunction } from "express";
+import * as authService from "../services/auth.service";
+import { validate } from "../middleware/validation.middleware";
+import {
+  signupSchema,
+  loginSchema,
+  googleLoginSchema,
+  refreshTokenSchema,
+} from "../middleware/validation.middleware.ts";
 
-// TODO: Implement controller functions
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const signup = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+
+
+const generateAccessToken = (userId: string): string => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET || "secret", {
+    expiresIn: "7d",
+  });
 };
 
-export const login = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+const generateRefreshToken = (userId: string): string => {
+  return jwt.sign(
+    { userId },
+    process.env.JWT_REFRESH_SECRET || "refresh-secret",
+    {
+      expiresIn: "30d",
+    }
+  );
 };
 
-export const googleOAuthCallback = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+
+
+const signupHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password, name } = req.body;
+
+    const existingUser = await authService.findUserByEmail(email);
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await authService.createUser(email, hashedPassword, name);
+
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+
+    res.status(201).json({
+      success: true,
+      user,
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+
+
+const loginHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await authService.findUserByEmail(email);
+    if (!user || !user.passwordHash) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    const isValidPassword = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!isValidPassword) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+
+    const { passwordHash, refreshTokenHash, ...safeUser } = user;
+
+    res.json({
+      success: true,
+      user: safeUser,
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const getCurrentUser = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+
+const googleLoginHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { credential } = req.body;
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload || !payload.email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Google token" });
+    }
+
+    const user = await authService.findOrCreateOAuthUser(
+      {
+        id: payload.sub!,
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
+      },
+      "google"
+    );
+
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+
+    res.json({
+      success: true,
+      user,
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const logout = async (req: Request, res: Response, next: NextFunction) => {
-  // Implementation here
+
+const refreshTokenHandler = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET || "refresh-secret"
+    ) as { userId: string };
+
+    const accessToken = generateAccessToken(decoded.userId);
+
+    res.json({
+      success: true,
+      accessToken,
+    });
+  } catch (error) {
+    res
+      .status(401)
+      .json({ success: false, message: "Invalid refresh token" });
+  }
 };
+
+
+
+export const getCurrentUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = (req as any).userId;
+
+    const user = await authService.findUserById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+export const logout = async (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: "Logged out successfully",
+  });
+};
+
+
+
+export const signup = [validate(signupSchema), signupHandler];
+export const login = [validate(loginSchema), loginHandler];
+export const googleLogin = [validate(googleLoginSchema),googleLoginHandler];
+export const refreshToken = [validate(refreshTokenSchema),refreshTokenHandler];
