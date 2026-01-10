@@ -32,11 +32,7 @@ CREATE TABLE "Question" (
 -- CreateTable
 CREATE TABLE "Hint" (
     "id" SERIAL NOT NULL,
-<<<<<<<< HEAD:packages/database/prisma/migrations/20251215145525_init/migration.sql
-    "name" TEXT NOT NULL,
-========
     "number" INTEGER NOT NULL,
->>>>>>>> feature/mayank:packages/database/prisma/migrations/20260107153328_init_migration/migration.sql
     "questionId" INTEGER NOT NULL,
     "hintText" TEXT NOT NULL DEFAULT '',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -85,12 +81,9 @@ CREATE INDEX "User_googleId_idx" ON "User"("googleId");
 
 -- CreateIndex
 CREATE INDEX "Question_name_idx" ON "Question"("name");
-<<<<<<<< HEAD:packages/database/prisma/migrations/20251215145525_init/migration.sql
-========
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Hint_questionId_number_key" ON "Hint"("questionId", "number");
->>>>>>>> feature/mayank:packages/database/prisma/migrations/20260107153328_init_migration/migration.sql
 
 -- CreateIndex
 CREATE INDEX "UserQuestionAnswer_questionId_idx" ON "UserQuestionAnswer"("questionId");

@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import HTTPServer from "http";
-import { socketAuthMiddleware } from "../middleware/socketAuth.middleware";
+import { socketAuthMiddleware } from "../middleware/socket.auth.middleware";
 import * as quizService from "../services/quiz.service";
 
 
@@ -42,8 +42,8 @@ class QuizSocket {
 
     private async sendInitialData(socket: Socket, userStats: any) {
         const { currentQuestionIndex, totalPoints } = userStats;
-        const currQuestionData = quizService.fetchQuestionDetailsByIndex(currentQuestionIndex);
-        const leaderBoardData = await quizService.fetchLeaderboardData();
+        const currQuestionData = quizService.getQuestionByIndex(currentQuestionIndex);
+        const leaderBoardData = await quizService.getTopLeaderboard();
         socket.emit("initialData", {
             currentQuestion: currQuestionData,
             currUserPoints: totalPoints,
@@ -53,7 +53,7 @@ class QuizSocket {
     }
 
     private async fetchAndEmitLeaderboardData(socket: Socket) {
-        const leaderBoardData = await quizService.fetchLeaderboardData();
+        const leaderBoardData = await quizService.getTopLeaderboard();
         socket.emit("leaderboardData", leaderBoardData);
     }
 

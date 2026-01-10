@@ -31,7 +31,6 @@
     "jsonwebtoken": "^9.0.3",
     "socket.io": "^4.8.1",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
-    "socket.io": "^4.8.1"
+    "ts-node": "^10.9.2"
   }
 }

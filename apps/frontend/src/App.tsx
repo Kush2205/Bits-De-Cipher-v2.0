@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate
-} from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-=======
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import PrivateRoute from './components/routing/PrivateRoute';
@@ -21,7 +10,6 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import { fetchCurrentUser } from './store/slices/authSlice';
 import { connectSocket, disconnectSocket } from './store/slices/socketSlice';
 import { setCurrentUserId } from './store/slices/leaderboardSlice';
->>>>>>> feature/mayank
 
 function App() {
   const dispatch = useAppDispatch();
@@ -47,15 +35,6 @@ function App() {
 
   return (
     <BrowserRouter>
-<<<<<<< HEAD
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-        </Routes>
-      </AuthProvider>
-=======
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
@@ -67,7 +46,7 @@ function App() {
             </PrivateRoute>
           }
         />
-        {/* Redirect old contest route to dashboard for backwards compatibility */}
+        
         <Route path="/contest" element={<Navigate to="/dashboard" replace />} />
         <Route
           path="/quiz"
@@ -87,7 +66,6 @@ function App() {
         />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
->>>>>>> feature/mayank
     </BrowserRouter>
   );
 }
