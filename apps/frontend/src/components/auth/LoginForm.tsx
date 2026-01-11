@@ -43,11 +43,36 @@ export const LoginForm = () => {
 
   return (
     <div className="w-full space-y-6">
-      <div className="text-center"> 
-        <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
-        <p className="mt-2 text-sm text-gray-300">Enter your credentials to join the live contest.</p>
-      </div>
 
+      {/* ===== Welcome Image Header ===== */}
+    {/* ===== Logo + Welcome ===== */}
+<div className="flex flex-col items-center text-center space-y-4">
+
+  {/* Circular Logo */}
+  <div className="w-24 h-24 rounded-full bg-black/40 border border-emerald-500/30
+                  flex items-center justify-center overflow-hidden
+                  shadow-[0_0_40px_rgba(16,185,129,0.5)]">
+    <img
+      src="/logo.png"
+      alt="GFG"
+      className="w-25 h-25 object-contain"
+    />
+  </div>
+
+  {/* Text */}
+  <div>
+    <h2 className="text-3xl font-bold text-white">
+      Welcome Back
+    </h2>
+    <p className="mt-1 text-sm text-gray-400">
+      Sign in to continue
+    </p>
+  </div>
+
+</div>
+
+
+      {/* ===== Form ===== */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
@@ -65,7 +90,7 @@ export const LoginForm = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full rounded-lg border border-gray-700 bg-[#2d2d2d] px-4 py-2.5 text-white placeholder-gray-500 outline-none transition focus:border-transparent focus:ring-2 focus:ring-green-500"
+            className="w-full rounded-lg border border-gray-700 bg-[#2d2d2d] px-4 py-2.5 text-white placeholder-gray-500 outline-none transition focus:ring-2 focus:ring-green-500"
             placeholder="you@example.com"
           />
         </div>
@@ -80,7 +105,7 @@ export const LoginForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full rounded-lg border border-gray-700 bg-[#2d2d2d] px-4 py-2.5 text-white placeholder-gray-500 outline-none transition focus:border-transparent focus:ring-2 focus:ring-green-500"
+            className="w-full rounded-lg border border-gray-700 bg-[#2d2d2d] px-4 py-2.5 text-white placeholder-gray-500 outline-none transition focus:ring-2 focus:ring-green-500"
             placeholder="••••••••"
           />
         </div>
@@ -94,6 +119,7 @@ export const LoginForm = () => {
         </button>
       </form>
 
+      {/* ===== Divider ===== */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-700" />
@@ -103,24 +129,27 @@ export const LoginForm = () => {
         </div>
       </div>
 
+      {/* ===== Google Login ===== */}
       <div className="flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            shape='pill'
-            useOneTap
-            theme="filled_black"
-            size="large"
-            text="signin_with"
-          />
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          shape="pill"
+          useOneTap
+          theme="filled_black"
+          size="large"
+          text="signin_with"
+        />
       </div>
 
+      {/* ===== Signup link ===== */}
       <p className="text-center text-sm text-gray-300">
-        Don't have an account?{' '}
-        <Link to="/signup" className="font-medium text-green-400 transition hover:text-green-300">
+        Don&apos;t have an account?{" "}
+        <Link to="/signup" className="font-medium text-green-400 hover:text-green-300">
           Sign up
         </Link>
       </p>
+
     </div>
   );
 };
