@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import gfglogo from "../../public/logo.png"
 const TARGET_DATE = "2026-01-10T10:00:00+05:30";
 
 interface TimeLeft {
@@ -77,14 +77,15 @@ const ContestTimerPage = () => {
         {/* --- BRANDING HEADER --- */}
         <div className="relative mb-10 flex flex-col items-center">
             {/* GFG Student Chapter Badge */}
-            <div className="mb-6 px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-md">
-                <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-emerald-500/80">
+            <div className="mb-6 px-4 py-1.5 rounded-full">
+                {/* <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] text-emerald-500/80">
                     GFG Student Chapter
-                </p>
+                </p> */}
+                <img src={gfglogo} alt="GFG Student Chapter" className="h-25 w-25" />
             </div>
 
             <div className="flex items-center justify-center gap-4 mb-4">
-                <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase italic">
+                <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase">
                     Bits <span className="text-emerald-400">De</span> Cipher
                 </h1>
             </div>
@@ -108,13 +109,13 @@ const ContestTimerPage = () => {
               <TimerBlock value={timeLeft.seconds} label="Seconds" />
             </div>
 
-            <p className="text-gray-600 text-[10px] sm:text-xs mt-12 font-mono uppercase tracking-widest opacity-60">
+            <p className="text-zinc-400 sm:text-xs mt-12 font-mono uppercase tracking-widest font-bold">
                 Beyond this timer lies the truth. Are you prepared to de-cipher it?
             </p>
           </div>
         ) : (
           <div className="relative animate-in zoom-in duration-500 py-8">
-             <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_rgba(16,185,129,0.3)]">
+             <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-8 -mt-10 shadow-[0_0_40px_rgba(16,185,129,0.3)]">
                  <svg className="w-10 h-10 text-emerald-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 10V3L4 14h7v7l9-11h-7z" />
                  </svg>
