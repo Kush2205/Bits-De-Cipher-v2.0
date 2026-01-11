@@ -63,8 +63,7 @@
  * </div>
  */
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+
 
 const ResultsPage = () => {
   // TODO: Fetch quiz results

@@ -4,16 +4,16 @@ console.log(process.env.DATABASE_URL);
 import prisma from "@repo/db/client";
 import bcrypt from 'bcrypt';
 
-const clearDatabase = async () => {
-    console.log("Clearing existing data...");
+// const clearDatabase = async () => {
+//     console.log("Clearing existing data...");
     
-    await prisma.userQuestionAnswer.deleteMany({});
-    await prisma.userHintsData.deleteMany({});
-    await prisma.user.deleteMany({});
-    await prisma.hint.deleteMany({});
-    await prisma.question.deleteMany({});
-    console.log("Database cleared.");
-}
+//     await prisma.userQuestionAnswer.deleteMany({});
+//     await prisma.userHintsData.deleteMany({});
+//     await prisma.user.deleteMany({});
+//     await prisma.hint.deleteMany({});
+//     await prisma.question.deleteMany({});
+//     console.log("Database cleared.");
+// }
 
 const seedQuestions = async () => {
     const imgUrl = [
