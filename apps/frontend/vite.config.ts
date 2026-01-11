@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   preview: {
     allowedHosts: [
-      "bits-de-cipher-dev.gfgrgipt.site"
+      "bits-de-cipher-dev.gfgrgipt.site",
+      "bits-de-cipher.gfgrgipt.site"
     ]
   }
 })
