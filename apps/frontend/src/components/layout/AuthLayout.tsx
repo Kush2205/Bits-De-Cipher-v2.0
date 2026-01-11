@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import PrismaticBurst from './PixelSnowBackground';
+import type { ReactNode } from "react";
+import PrismaticBurst from "./PixelSnowBackground";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -8,63 +8,55 @@ interface AuthLayoutProps {
 export const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#05060a] text-white">
-      
-      {/* Animated Background */}
+
+    
+      {/* ===== Animated Background ===== */}
       <div className="absolute inset-0 z-0">
         <PrismaticBurst
           animationType="rotate3d"
-          intensity={2}
-          speed={0.5}
-          distort={1.0}
+          intensity={1.5}
+          speed={0.4}
+          distort={0.8}
           paused={false}
           offset={{ x: 0, y: 0 }}
           hoverDampness={0.25}
-          rayCount={24}
+          rayCount={18}
           mixBlendMode="lighten"
-          colors={['#10b981', '#84cc16', '#facc15']}
+          colors={["#10b981", "#22c55e"]}
         />
       </div>
 
-      {/* Dark overlay */}
-      <div className="absolute inset-0 z-0 bg-black/30 pointer-events-none" />
+      {/* Dark overlay for contrast */}
+      <div className="absolute inset-0 bg-black/70 z-0" />
 
-      {/* Content */}
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4">
-        
-        {/* ===== HERO SECTION (OUTSIDE CARD) ===== */}
-        <div className="mb-10 mt-4 text-center">
-          <div className="
-              inline-flex items-center gap-2 rounded-full
-              border border-green-400/40
-              bg-green-500/10
-              px-3 py-1
-              text-[11px] font-semibold text-green-400
-              shadow-[0_0_12px_rgba(16,185,129,0.35)]
-            ">
-              GFG Student Chapter • Live Contest
-            </div>
+      {/* Subtle center glow */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.25),transparent_60%)]" />
 
-          <h1 className="text-5xl font-extrabold tracking-tight text-white">
-            Bits De Cipher
+      {/* ===== CONTENT ===== */}
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6">
+
+        {/* Hero */}
+        <div className="mb-10 text-center">
+          <div className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1 text-xs text-emerald-400">
+            GFG Student Chapter · Live Contest
+          </div>
+
+          <h1 className="mt-4 text-5xl font-extrabold tracking-tight">
+            Bits De{" "}
+            <span className="text-emerald-400">Cipher</span>
           </h1>
         </div>
 
-        {/* ===== AUTH CARD ===== */}
-        <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl shadow-[0_20px_80px_-40px_rgba(0,0,0,0.9)]">
-            
-            {/* Inner border */}
-            <div className="absolute inset-px rounded-[22px] border border-white/5" />
+        {/* Card */}
+        <div className="w-full max-w-md relative">
+          
+          {/* Glow behind card */}
+          <div className="absolute -inset-8 bg-emerald-500/20 blur-3xl rounded-full" />
 
-            {/* Glow blobs */}
-            <div className="absolute -left-12 -top-12 h-32 w-32 rounded-full bg-[#10b981]/20 blur-3xl" />
-            <div className="absolute -right-16 -bottom-16 h-40 w-40 rounded-full bg-[#facc15]/15 blur-3xl" />
-
-            {/* Form content */}
-            <div className="relative p-8">
-              {children}
-            </div>
+          <div className="relative rounded-2xl border border-white/10 bg-[#0d1117]/80 backdrop-blur-xl shadow-2xl p-8">
+            {children}
           </div>
+
         </div>
 
       </div>

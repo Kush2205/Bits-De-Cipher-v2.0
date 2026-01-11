@@ -1,18 +1,25 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import LiveLeaderboard from '../components/LiveLeaderboard';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { logoutUser } from '../store/slices/authSlice';
-
-import { joinQuizRoom } from '../store/slices/quizSlice';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Trophy } from "lucide-react";
+import LiveLeaderboard from "../components/LiveLeaderboard";
+import PrismaticBurst from "../components/layout/PixelSnowBackground";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { logoutUser } from "../store/slices/authSlice";
+import { joinQuizRoom } from "../store/slices/quizSlice";
 
 const DashboardPage = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const { user } = useAppSelector((state) => state.auth);
   const { isConnected } = useAppSelector((state) => state.socket);
-  const { userStats, isJoined, error: quizError } = useAppSelector((state) => state.quiz);
-  const { entries: leaderboard, error: leaderboardError } = useAppSelector((state) => state.leaderboard);
-  const navigate = useNavigate();
+  const { userStats, isJoined } = useAppSelector((state) => state.quiz);
+  const { entries: leaderboard = [] } = useAppSelector(
+    (state) => state.leaderboard
+  );
+  const userRank =
+  leaderboard.findIndex((p) => p.id === user?.id) + 1 || "-";
+
 
   useEffect(() => {
     if (isConnected && !isJoined) {
@@ -22,125 +29,227 @@ const DashboardPage = () => {
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
-    navigate('/login');
+    navigate("/login");
   };
 
-  
-
-  const error = quizError || leaderboardError;
+  const top3 = leaderboard.slice(0, 3);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#05060a] text-white">
-      {/* Navbar */}
-      <nav className="border-b border-gray-800/50 bg-gray-900/30 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="flex h-16 items-center justify-between">
-            <h1 className="text-xl font-semibold text-white">Bits De Cipher</h1>
+    <div className="relative min-h-screen bg-[#05060a] text-white overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 z-0">
+        <PrismaticBurst
+          animationType="rotate3d"
+          intensity={1.6}
+          speed={0.45}
+          distort={0.9}
+          paused={false}
+          offset={{ x: 0, y: 0 }}
+          hoverDampness={0.25}
+          rayCount={22}
+          mixBlendMode="lighten"
+          colors={["#10b981", "#22c55e", "#84cc16"]}
+        />
+      </div>
+
+      <div className="absolute inset-0 bg-black/70 z-0" />
+
+      <div className="relative z-10 min-h-screen">
+        {/* Header */}
+        <header className="border-b border-white/5 bg-black/40 backdrop-blur">
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <h1 className="text-lg font-semibold">
+              Bits De <span className="text-emerald-400">Cipher</span>
+            </h1>
+
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-300">{user?.name || user?.email}</span>
+              <span className="text-gray-400 text-sm">{user?.name}</span>
               <button
                 onClick={handleLogout}
-                className="rounded-lg border border-gray-700 bg-gray-800/50 px-4 py-2 text-sm text-gray-300 transition hover:border-gray-600 hover:text-white"
+                className="px-4 py-2 text-sm rounded-lg border border-white/10 hover:border-emerald-400 transition"
               >
                 Logout
               </button>
             </div>
           </div>
-        </div>
-      </nav>
+        </header>
 
-      {error && (
-        <div className="max-w-6xl mx-auto px-4 pt-4">
-          <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4 text-red-400">
-            <p className="font-semibold">Error:</p>
-            <p>{error}</p>
-          </div>
-        </div>
-      )}
-
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Main Panel */}
-          <div className="lg:col-span-2">
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0e12] p-10 shadow-2xl">
-              {/* Hero Section */}
-              <div className="mb-10 text-center">
-                <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500/30">
-                  <svg
-                    className="h-10 w-10 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-
-                <h2 className="mb-4 text-4xl font-bold text-white md:text-5xl">
-                  Ready to Compete?
-                </h2>
-
-                <p className="mx-auto max-w-2xl text-base text-gray-400">
-                  Test your knowledge and climb the leaderboard.
-                </p>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="mb-8 grid grid-cols-2 gap-4">
-                <div className="rounded-xl border border-gray-800/50 bg-[#12131a] p-5 transition hover:border-emerald-500/30">
-                  <div className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">Points</div>
-                  <div className="text-3xl font-bold text-emerald-400">
-                    {userStats?.totalPoints ?? user?.totalPoints ?? 0}
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-gray-800/50 bg-[#12131a] p-5 transition hover:border-emerald-500/30">
-                  <div className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">Solved</div>
-                  <div className="text-3xl font-bold text-emerald-400">
-                    {userStats?.currentQuestionIndex ?? user?.currentQuestionIndex ?? 0}/10
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <div className="text-center">
-                <button
-                  onClick={() => navigate('/quiz')}
-                  className="rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 px-10 py-4 text-lg font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 hover:shadow-emerald-500/50"
-                >
-                  Start Contest
-                </button>
-              </div>
-            </div>
+        <main className="max-w-7xl mx-auto px-6 py-10">
+          {/* Title */}
+          <div className="text-center mb-14">
+            <h2 className="text-4xl font-bold tracking-wide">
+              Live Leaderboard
+            </h2>
+            <p className="text-gray-400 mt-2">
+              Compete in real-time and win rewards
+            </p>
           </div>
 
-          {/* Leaderboard Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-4 space-y-3">
-              <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0e12] shadow-2xl">
+          {/* ================= PODIUM ================= */}
+          <div className="grid grid-cols-3 gap-6 mb-16 items-end">
+            <PodiumCard user={top3[1]} rank={2} />
+            <PodiumCard user={top3[0]} rank={1} champion />
+            <PodiumCard user={top3[2]} rank={3} />
+          </div>
+
+          {/* ================= MAIN GRID ================= */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {/* Leaderboard */}
+            <div className="lg:col-span-2">
+              <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 backdrop-blur p-6">
+                <h3 className="text-lg font-semibold mb-4">Live Rankings</h3>
                 <LiveLeaderboard
                   participants={leaderboard}
-                  currentUserId={user?.id || ''}
+                  currentUserId={user?.id || ""}
                   limit={10}
                 />
               </div>
-              <button
-                onClick={() => navigate('/leaderboard')}
-                className="w-full rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-500/50"
-              >
-                View Full Leaderboard
-              </button>
             </div>
+
+            {/* Right Panel */}
+            <div className="space-y-4">
+              {/* Start Contest */}
+              <button
+                onClick={() => navigate("/quiz")}
+                className="w-full py-4 rounded-xl bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition"
+              >
+                Start Contest
+              </button>
+
+              {/* Stats */}
+             <StatCard
+  label="Your Rank"
+  value={`#${userRank}`}
+/>
+
+<StatCard
+  label="Your Points"
+  value={userStats?.totalPoints ?? user?.totalPoints ?? 0}
+/>
+
+<StatCard
+  label="Solved"
+  value={`${userStats?.currentQuestionIndex ?? 0}/10`}
+/>
+
+            </div>
+
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );
 };
 
 export default DashboardPage;
+
+/* ================= PODIUM CARD ================= */
+
+const PodiumCard = ({
+  user,
+  rank,
+  champion,
+}: {
+  user: any;
+  rank: number;
+  champion?: boolean;
+}) => {
+  if (!user) return <div />;
+
+  const styles =
+    rank === 1
+      ? {
+          glow: "from-yellow-400/40 via-yellow-300/10 to-transparent",
+          ring: "ring-yellow-400/40",
+          number: "text-yellow-400",
+        }
+      : rank === 2
+      ? {
+          glow: "from-emerald-400/30 via-emerald-300/10 to-transparent",
+          ring: "ring-emerald-400/40",
+          number: "text-emerald-400",
+        }
+      : {
+          glow: "from-cyan-400/30 via-cyan-300/10 to-transparent",
+          ring: "ring-cyan-400/40",
+          number: "text-cyan-400",
+        };
+
+  const ordinal = rank === 1 ? "1st" : rank === 2 ? "2nd" : "3rd";
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-3xl px-6 py-8 flex flex-col
+      bg-[#05060a]/90 border border-white/10 backdrop-blur-xl
+      ${champion ? "h-[340px]" : "h-[280px]"}
+      ring-2 ${styles.ring}
+      shadow-[0_0_80px_rgba(16,185,129,0.25)]`}
+    >
+      {/* Neon Glow Layer */}
+      <div
+        className={`absolute -inset-1 bg-gradient-to-t ${styles.glow} blur-3xl opacity-80`}
+      />
+
+      {/* Big Rank */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span
+          className={`text-[160px] font-black opacity-[0.08] ${styles.number}`}
+        >
+          {ordinal}
+        </span>
+      </div>
+
+      {/* Crown */}
+      {champion && (
+        <div className="flex justify-center mb-4 relative z-10">
+          <Trophy className="text-yellow-400 drop-shadow-[0_0_20px_rgba(234,179,8,0.8)]" size={36} />
+        </div>
+      )}
+
+      {/* Name */}
+      <h3 className="text-center text-xl font-semibold mb-6 relative z-10 tracking-wide">
+        {user.name}
+      </h3>
+
+      <div className="flex-1" />
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4 text-center relative z-10">
+        <div>
+          <p className="text-gray-400 text-xs uppercase">Points</p>
+          <p className="text-emerald-400 text-xl font-bold">
+            {user.points}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-400 text-xs uppercase">Solved</p>
+          <p className="text-emerald-400 text-xl font-bold">
+            {user.solved ?? 0}/10
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-400 text-xs uppercase">Rank</p>
+          <p className={`text-xl font-bold ${styles.number}`}>
+            #{rank}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ================= STAT CARD ================= */
+
+const StatCard = ({ label, value }: { label: string; value: any }) => (
+  <div className="rounded-xl border border-white/10 bg-[#0d1117]/80 backdrop-blur p-5">
+    <div className="text-xs uppercase tracking-wide text-gray-500">
+      {label}
+    </div>
+    <div className="mt-2 text-3xl font-bold text-emerald-400">
+      {value}
+    </div>
+  </div>
+);
