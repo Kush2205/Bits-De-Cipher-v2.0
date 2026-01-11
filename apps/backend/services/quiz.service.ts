@@ -252,6 +252,11 @@ export const submitAnswer = async (opts: {
       });
 
       nextQuestion = nextQuestions[0] || null;
+
+      if (nextQuestion) {
+        const firstVisit = await ensureFirstUserVisit(nextQuestion.id);
+        (nextQuestion as any).firstUserVisit = firstVisit;
+      }
     }
 
     return {

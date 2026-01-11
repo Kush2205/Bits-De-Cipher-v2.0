@@ -26,6 +26,7 @@ const QuizRoomPage = () => {
   const [showFullLeaderboard, setShowFullLeaderboard] = useState(false);
   const [shake, setShake] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false); // New Zoom State
+  const [flashMessage, setFlashMessage] = useState<{title: string;message: string;} | null>(null);
 
   // --- LOGIC: UNCHANGED ---
   const formatInIST = (date: Date) => {
@@ -109,9 +110,19 @@ const QuizRoomPage = () => {
         ? `Hints will be unlocked at ${formatInIST(unlockDate)}`
         : result.message;
 
-      window.alert(message);
+      setFlashMessage({
+        title: "Hint Locked",
+        message,
+      });
+
       dispatch(clearHintLockMessage());
+
+      setTimeout(() => {
+        setFlashMessage(null);
+      }, 3000);
     }
+
+
   };
 
   const handleLogout = async () => {
@@ -229,6 +240,29 @@ const QuizRoomPage = () => {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#05060a] text-gray-300">
+      {/* Flash Message */}
+      {flashMessage && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[120] animate-in slide-in-from-top-2 fade-in duration-200">
+          <div className="relative max-w-sm rounded-2xl border border-red-500/30 bg-[#0d0e12]/95 backdrop-blur-xl shadow-2xl shadow-red-900/30 p-4">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setFlashMessage(null)}
+              className="absolute top-2 right-2 rounded-md p-1 text-gray-500 hover:text-white hover:bg-white/5 transition"
+            >
+              ✕
+            </button>
+
+            <p className="text-[9px] font-black uppercase tracking-widest text-red-400 mb-1">
+              {flashMessage.title}
+            </p>
+            <p className="text-xs text-gray-300 leading-relaxed pr-4">
+              {flashMessage.message}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Zoomed Overlay */}
       {isZoomed && quiz.currentQuestion.imageUrl && (
         <div

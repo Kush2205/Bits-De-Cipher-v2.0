@@ -3,7 +3,6 @@ import HTTPServer from "http";
 import { socketAuthMiddleware } from "../middleware/socket.auth.middleware";
 import * as quizService from "../services/quiz.service";
 
-
 class QuizSocket {
 
     public io: Server;
