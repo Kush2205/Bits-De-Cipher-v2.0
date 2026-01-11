@@ -8,7 +8,7 @@ declare global {
     }
   }
 }
-const CONTEST_START_TIME = new Date("2026-01-10T10:00:00+05:30").getTime();
+const CONTEST_START_TIME = new Date("2026-01-17T10:00:00+05:30").getTime();
 
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   const currentTime = Date.now();
