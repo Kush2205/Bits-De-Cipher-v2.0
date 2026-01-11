@@ -38,10 +38,10 @@ jobs:
           key: ${{ secrets.DEV_SERVER_SSH_KEY }}
           script: |
             sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/bits-de-cipher-backend:dev
-            sudo docker stop ${{ secrets.DOCKER_HUB_USERNAME }}/bits-de-cipher-backend || true
-            sudo docker rm ${{ secrets.DOCKER_HUB_USERNAME }}/bits-de-cipher-backend || true
+            # Use the EXACT name you defined in the --name flag below
+            sudo docker stop bits-de-cipher-backend || true
+            sudo docker rm bits-de-cipher-backend || true
             sudo docker run -d -p 5000:5000 --name bits-de-cipher-backend \
               -e DATABASE_URL="${{ secrets.DEV_DATABASE_URL }}" \
               ${{ secrets.DOCKER_HUB_USERNAME }}/bits-de-cipher-backend:dev
-   
     
