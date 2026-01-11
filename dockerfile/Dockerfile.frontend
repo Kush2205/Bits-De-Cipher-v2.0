@@ -1,0 +1,10 @@
+FROM oven/bun
+WORKDIR /app
+COPY ./package.json ./package.json
+COPY ./bun.lock ./bun.lock
+COPY ./packages  ./packages
+COPY ./apps/frontend ./apps/frontend
+RUN bun install
+RUN bun run --cwd apps/frontend build
+EXPOSE 4173
+CMD ["bun", "run", "--cwd", "apps/frontend", "preview", "--host", "0.0.0.0", "--port", "4173"]

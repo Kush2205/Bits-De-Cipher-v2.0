@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import LiveLeaderboard from '../components/LiveLeaderboard';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logoutUser } from '../store/slices/authSlice';
-import { refreshLeaderboard } from '../store/slices/leaderboardSlice';
+
 import { joinQuizRoom } from '../store/slices/quizSlice';
 
 const DashboardPage = () => {
@@ -25,9 +25,7 @@ const DashboardPage = () => {
     navigate('/login');
   };
 
-  const handleRefreshLeaderboard = () => {
-    dispatch(refreshLeaderboard({ userId: user?.id }));
-  };
+  
 
   const error = quizError || leaderboardError;
 
