@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import PrivateRoute from './components/routing/PrivateRoute';
+import ContestGuard from "./context/ContestGuard";
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
@@ -10,6 +11,7 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import { fetchCurrentUser } from './store/slices/authSlice';
 import { connectSocket, disconnectSocket } from './store/slices/socketSlice';
 import { setCurrentUserId } from './store/slices/leaderboardSlice';
+import ContestTimerPage from "./pages/ContestTimerPage"
 
 function App() {
   const dispatch = useAppDispatch();
@@ -36,35 +38,55 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        
         <Route
           path="/dashboard"
           element={
             <PrivateRoute>
-              <DashboardPage />
+              <ContestGuard>
+                <DashboardPage />
+              </ContestGuard>
             </PrivateRoute>
           }
         />
         
-        <Route path="/contest" element={<Navigate to="/dashboard" replace />} />
         <Route
           path="/quiz"
           element={
             <PrivateRoute>
-              <QuizRoomPage />
+              <ContestGuard>
+                <QuizRoomPage />
+              </ContestGuard>
             </PrivateRoute>
           }
         />
+
         <Route
           path="/leaderboard"
           element={
             <PrivateRoute>
-              <LeaderboardPage />
+              <ContestGuard>
+                <LeaderboardPage />
+              </ContestGuard>
             </PrivateRoute>
           }
         />
+
+        <Route 
+          path="/timer" 
+          element={
+              <PrivateRoute>
+                <ContestTimerPage/>
+              </PrivateRoute>
+          } 
+        />
+
+        <Route path="/contest" element={<Navigate to="/dashboard" replace />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
+
       </Routes>
     </BrowserRouter>
   );

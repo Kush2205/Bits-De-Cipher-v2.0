@@ -47,26 +47,27 @@ import type { ZodSchema } from "zod";
 
 export const validate = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-        schema.safeParse({
-        body: req.body,
-        params: req.params, 
-        query: req.query,
-      });
+    const result = schema.safeParse({
+      body: req.body,
+      params: req.params,
+      query: req.query,
+    });
 
-      next();
-    } catch (error: any) {
+    if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
-        errors: error.issues.map((issue: any) => ({
+        message: result.error.issues[0]?.message,
+        errors: result.error.issues.map((issue) => ({
           field: issue.path.join("."),
           message: issue.message,
         })),
       });
     }
+
+    next();
   };
 };
+
 
 
 export const signupSchema = z.object({

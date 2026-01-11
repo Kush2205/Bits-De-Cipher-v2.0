@@ -9,7 +9,7 @@
     "check-types": "turbo run check-types",
     "prisma:generate": "cd packages/database && bun prisma generate",
     "prisma:migrate": "cd packages/database && bun prisma migrate dev",
-    "seed:db": "bun run packages/utils/seedDB.ts",
+    "seed:db": "bun run packages/utils/index.ts",
     "reset:db": "cd packages/database && bun prisma migrate reset --force",
     "start:db": "docker run -d -p 5432:5432 --name bits_de_cipher_db -e POSTGRES_PASSWORD=postgres postgres && sleep 5 && bun prisma:migrate && bun seed:db"
   },
@@ -28,6 +28,7 @@
   ],
   "dependencies": {
     "axios": "^1.13.2",
+    "lucide-react": "^0.562.0",
     "zod": "^4.2.1"
   }
 }

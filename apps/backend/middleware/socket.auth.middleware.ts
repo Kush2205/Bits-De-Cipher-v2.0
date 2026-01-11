@@ -6,7 +6,10 @@ interface JWTPayload {
   email: string;
 }
 
+const CONTEST_START_TIME = new Date("2026-01-10T10:00:00+05:30").getTime();
+
 export const socketAuthMiddleware = (socket: Socket, next: (err?: ExtendedError) => void) => {
+  const currentTime = Date.now();
   try {
     let token = socket.handshake.auth?.token;
     
@@ -24,7 +27,17 @@ export const socketAuthMiddleware = (socket: Socket, next: (err?: ExtendedError)
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as JWTPayload;
-    
+
+    if (currentTime < CONTEST_START_TIME) {
+      const timeError = new Error('CONTEST_NOT_STARTED') as any;
+      timeError.data = { 
+        message: "ACCESS_DENIED: Contest has not started yet.",
+        unlocksAt: CONTEST_START_TIME 
+      };
+      console.log(`Blocked early access attempt by ${decoded.email}`);
+      return next(timeError);
+    }
+
     socket.data.userId = decoded.userId;
     socket.data.email = decoded.email;
     

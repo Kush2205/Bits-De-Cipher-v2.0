@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -8,80 +7,77 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model User {
-  id                     String    @id @default(uuid())
-  email                  String    @unique
-  name                   String?
-  passwordHash           String?   
-  googleId               String?   @unique
-  refreshTokenHash       String?   
-  totalPoints            Int       @default(0)
-  currentQuestionIndex   Int       @default(0)
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
-  userAnswers            UserQuestionAnswer[]
-  hintsData              UserHintsData[]
- 
+  id                   String               @id @default(uuid())
+  email                String               @unique
+  name                 String?
+  passwordHash         String?
+  googleId             String?              @unique
+  refreshTokenHash     String?
+  totalPoints          Int                  @default(0)
+  currentQuestionIndex Int                  @default(0)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  hintsData            UserHintsData[]
+  userAnswers          UserQuestionAnswer[]
+
   @@index([googleId])
 }
 
-
 model Question {
-  id          Int               @id @default(autoincrement())
-  name        String                
-  imageUrl    String?
-  points      Int                   
-  maxPoints   Int
-  correctAnswer  String         @default("answer")                   
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
-  userAnswers UserQuestionAnswer[]
-  hints       Hint[]
-  hintsData   UserHintsData[]
+  id             Int                  @id @default(autoincrement())
+  name           String
+  imageUrl       String?
+  points         Int
+  maxPoints      Int
+  correctAnswer  String               @default("answer")
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
   firstUserVisit DateTime?
+  hints          Hint[]
+  hintsData      UserHintsData[]
+  userAnswers    UserQuestionAnswer[]
+
   @@index([name])
 }
 
 model Hint {
-  id           Int       @id @default(autoincrement())
-  number       Int    
-  questionId   Int
-  hintText  String    @default("")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now())
-  usedAt    DateTime?
-  question  Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  
+  id         Int       @id @default(autoincrement())
+  number     Int
+  questionId Int
+  hintText   String    @default("")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+  usedAt     DateTime?
+  question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
   @@unique([questionId, number])
 }
 
-model UserHintsData{
-  id           Int         @id @default(autoincrement())
-  userId       String
-  questionId   Int
-  hint1Used    Boolean     @default(false)
-  hint2Used    Boolean     @default(false)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question     Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+model UserHintsData {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  questionId Int
+  hint1Used  Boolean  @default(false)
+  hint2Used  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserQuestionAnswer {
-  id              Int   @id @default(autoincrement())
-  userId          String
-  questionId      Int
-  user            User     @relation(fields: [userId], references: [id])
-  question        Question @relation(fields: [questionId], references: [id])
-  submittedText   String
-  isCorrect       Boolean
-  awardedPoints   Int
-  usedHint1       Boolean  @default(false)
-  usedHint2       Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  userId        String
+  questionId    Int
+  submittedText String
+  isCorrect     Boolean
+  awardedPoints Int
+  usedHint1     Boolean  @default(false)
+  usedHint2     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  question      Question @relation(fields: [questionId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
 
-   
-   
   @@index([questionId])
 }

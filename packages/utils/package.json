@@ -8,10 +8,13 @@
     "@repo/db": "*"
   },
   "peerDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^5"
   },
   "dependencies": {
+    "@repo/db": "*",
     "@types/bcrypt": "^6.0.0",
-    "bcrypt": "^6.0.0"
+    "@types/dotenv": "^8.2.3",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3"
   }
 }

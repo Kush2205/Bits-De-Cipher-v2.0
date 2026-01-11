@@ -1,13 +1,30 @@
-
-
-import { AuthLayout } from '../components/layout/AuthLayout';
-import { SignupForm } from '../components/auth/SignupForm';
+import { AuthLayout } from "../components/layout/AuthLayout";
+import { SignupForm } from "../components/auth/SignupForm";
 
 const SignupPage = () => {
   return (
-    <AuthLayout>
-      <SignupForm />
-    </AuthLayout>
+    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+
+ 
+      <AuthLayout>
+        <SignupForm />
+      </AuthLayout>
+
+    
+      <div className="hidden md:block relative">
+        <img
+          src="/poster.jpg"
+          alt="Signup visual"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+
+    
+        <div className="absolute inset-0 bg-black/60" />
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(16,185,129,0.35),transparent_60%)]" />
+      </div>
+
+    </div>
   );
 };
 

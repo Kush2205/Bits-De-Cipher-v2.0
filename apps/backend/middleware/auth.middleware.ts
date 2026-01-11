@@ -8,13 +8,24 @@ declare global {
     }
   }
 }
+const CONTEST_START_TIME = new Date("2026-01-10T10:00:00+05:30").getTime();
 
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+  const currentTime = Date.now();
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    if (currentTime < CONTEST_START_TIME) {
+
+        return res.status(403).json({
+            success: false,
+            message: "ACCESS_DENIED: Contest has not started yet.",
+            unlocksAt: CONTEST_START_TIME
+        });
     }
 
     const token = authHeader.substring(7); 

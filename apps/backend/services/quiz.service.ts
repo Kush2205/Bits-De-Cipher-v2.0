@@ -252,6 +252,11 @@ export const submitAnswer = async (opts: {
       });
 
       nextQuestion = nextQuestions[0] || null;
+
+      if (nextQuestion) {
+        const firstVisit = await ensureFirstUserVisit(nextQuestion.id);
+        (nextQuestion as any).firstUserVisit = firstVisit;
+      }
     }
 
     return {
@@ -294,7 +299,7 @@ export const submitAnswer = async (opts: {
   return result;
 };
 
-export const getTopLeaderboard = async (limit = 15) => {
+export const getTopLeaderboard = async (limit:number) => {
   return prisma.user.findMany({
     orderBy: [{ totalPoints: 'desc' }, { createdAt: 'asc' }],
     take: limit,
