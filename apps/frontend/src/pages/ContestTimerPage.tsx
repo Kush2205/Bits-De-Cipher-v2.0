@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gfglogo from "../../public/logo.png"
-const TARGET_DATE = "2026-01-10T10:00:00+05:30";
+const TARGET_DATE = "2026-01-17T10:00:00+05:30";
 
 interface TimeLeft {
   days: number;
