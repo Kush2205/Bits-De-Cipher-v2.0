@@ -26,7 +26,10 @@ jobs:
           file: dockerfile/Dockerfile.frontend
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/bits-de-cipher-frontend:dev
-    
+          build-args: |
+            VITE_API_URL=${{ secrets.DEV_API_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.DEV_GOOGLE_CLIENT_ID }}
+            
       - name: Deploy to Development Server
         uses: appleboy/ssh-action@master
         with:
