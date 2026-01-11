@@ -21,4 +21,4 @@ EXPOSE 5000
 
 RUN cd packages/database && bunx prisma generate
 
-CMD ["bun", "run", "prisma"]
+CMD ["bun", "run", "--cwd", "apps/backend", "index.ts"]
