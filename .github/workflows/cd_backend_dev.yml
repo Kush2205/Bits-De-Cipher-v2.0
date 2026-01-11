@@ -27,8 +27,8 @@ jobs:
           file: dockerfile/Dockerfile.backend
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/bits-de-cipher-backend:dev
-          secrets: |
-            "DATABASE_URL=${{ secrets.DEV_DATABASE_URL }}"
+          build-args: |
+            DATABASE_URL=${{ secrets.DEV_DATABASE_URL }}
 
       - name: Deploy to Development Server
         uses: appleboy/ssh-action@master
