@@ -6,7 +6,11 @@ import './index.css';
 import App from './App.tsx';
 import { store } from './store';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+if (!GOOGLE_CLIENT_ID) {
+  throw new Error('Missing VITE_GOOGLE_CLIENT_ID (required for Google OAuth)');
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
