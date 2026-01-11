@@ -29,7 +29,9 @@ jobs:
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/bits-de-cipher-backend:prod
           build-args: |
             DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
-
+            GOOGLE_CLIENT_ID=${{ secrets.PROD_GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.PROD_GOOGLE_CLIENT_SECRET }}
+            
       - name: Deploy to Development Server
         uses: appleboy/ssh-action@master
         with:
