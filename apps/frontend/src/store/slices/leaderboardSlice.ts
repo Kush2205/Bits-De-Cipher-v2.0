@@ -18,7 +18,7 @@ interface LeaderboardState {
 const initialState: LeaderboardState = {
   entries: [],
   view: 'top',
-  limit: 15,
+  limit : 100,
   status: 'idle',
   error: null,
   isRefreshing: false,

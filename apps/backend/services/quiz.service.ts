@@ -294,7 +294,7 @@ export const submitAnswer = async (opts: {
   return result;
 };
 
-export const getTopLeaderboard = async (limit = 15) => {
+export const getTopLeaderboard = async (limit:number) => {
   return prisma.user.findMany({
     orderBy: [{ totalPoints: 'desc' }, { createdAt: 'asc' }],
     take: limit,
