@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trophy } from "lucide-react";
 import LiveLeaderboard from "../components/LiveLeaderboard";
@@ -6,6 +7,7 @@ import PrismaticBurst from "../components/layout/PixelSnowBackground";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
 import { joinQuizRoom } from "../store/slices/quizSlice";
+import { setCurrentUserId } from "../store/slices/leaderboardSlice";
 
 const DashboardPage = () => {
   const dispatch = useAppDispatch();
@@ -13,13 +15,17 @@ const DashboardPage = () => {
 
   const { user } = useAppSelector((state) => state.auth);
   const { isConnected } = useAppSelector((state) => state.socket);
-  const { userStats, isJoined } = useAppSelector((state) => state.quiz);
-  const { entries: leaderboard = [] } = useAppSelector(
+  const { isJoined } = useAppSelector((state) => state.quiz);
+
+  const { entries: leaderboard, currentUserRank } = useAppSelector(
     (state) => state.leaderboard
   );
-  const userRank =
-  leaderboard.findIndex((p) => p.id === user?.id) + 1 || "-";
 
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(setCurrentUserId(user.id));
+    }
+  }, [user?.id, dispatch]);
 
   useEffect(() => {
     if (isConnected && !isJoined) {
@@ -27,27 +33,30 @@ const DashboardPage = () => {
     }
   }, [dispatch, isConnected, isJoined]);
 
+  const myEntry = leaderboard.find((p) => p.id === user?.id);
+
+  const myPoints = myEntry?.totalPoints ?? 0;
+  const mySolved = myEntry?.currentQuestionIndex ?? 0;
+
+  const top3 = leaderboard.slice(0, 3);
+
   const handleLogout = async () => {
     await dispatch(logoutUser());
     navigate("/login");
   };
 
-  const top3 = leaderboard.slice(0, 3);
+  const [showRules, setShowRules] = useState(false);
+
 
   return (
     <div className="relative min-h-screen bg-[#05060a] text-white overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 z-0">
         <PrismaticBurst
           animationType="rotate3d"
           intensity={1.6}
           speed={0.45}
           distort={0.9}
-          paused={false}
-          offset={{ x: 0, y: 0 }}
-          hoverDampness={0.25}
           rayCount={22}
-          mixBlendMode="lighten"
           colors={["#10b981", "#22c55e", "#84cc16"]}
         />
       </div>
@@ -55,13 +64,11 @@ const DashboardPage = () => {
       <div className="absolute inset-0 bg-black/70 z-0" />
 
       <div className="relative z-10 min-h-screen">
-        {/* Header */}
         <header className="border-b border-white/5 bg-black/40 backdrop-blur">
           <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <h1 className="text-lg font-semibold">
               Bits De <span className="text-emerald-400">Cipher</span>
             </h1>
-
             <div className="flex items-center gap-4">
               <span className="text-gray-400 text-sm">{user?.name}</span>
               <button
@@ -75,30 +82,25 @@ const DashboardPage = () => {
         </header>
 
         <main className="max-w-7xl mx-auto px-6 py-10">
-          {/* Title */}
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-bold tracking-wide">
-              Live Leaderboard
-            </h2>
+            <h2 className="text-4xl font-bold">Live Leaderboard</h2>
             <p className="text-gray-400 mt-2">
               Compete in real-time and win rewards
             </p>
           </div>
 
-          {/* ================= PODIUM ================= */}
-          <div className="grid grid-cols-3 gap-6 mb-16 items-end">
-            <PodiumCard user={top3[1]} rank={2} />
-            <PodiumCard user={top3[0]} rank={1} champion />
-            <PodiumCard user={top3[2]} rank={3} />
-          </div>
+          {/* PODIUM */}
+          {leaderboard.length > 0 && (
+            <div className="grid grid-cols-3 gap-6 mb-16 items-end">
+              <PodiumCard user={top3[1]} rank={2} />
+              <PodiumCard user={top3[0]} rank={1} champion />
+              <PodiumCard user={top3[2]} rank={3} />
+            </div>
+          )}
 
-          {/* ================= MAIN GRID ================= */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            {/* Leaderboard */}
             <div className="lg:col-span-2">
-              <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 backdrop-blur p-6">
-                <h3 className="text-lg font-semibold mb-4">Live Rankings</h3>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-6">
                 <LiveLeaderboard
                   participants={leaderboard}
                   currentUserId={user?.id || ""}
@@ -107,44 +109,37 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* Right Panel */}
             <div className="space-y-4">
-              {/* Start Contest */}
+              
               <button
-                onClick={() => navigate("/quiz")}
-                className="w-full py-4 rounded-xl bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition"
-              >
-                Start Contest
-              </button>
+  onClick={() => setShowRules(true)}
+  className="w-full py-4 rounded-xl bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition"
+>
+  Start Contest
+</button>
 
-              {/* Stats */}
-             <StatCard
-  label="Your Rank"
-  value={`#${userRank}`}
-/>
 
-<StatCard
-  label="Your Points"
-  value={userStats?.totalPoints ?? user?.totalPoints ?? 0}
-/>
-
-<StatCard
-  label="Solved"
-  value={`${userStats?.currentQuestionIndex ?? 0}/10`}
-/>
-
+              <StatCard label="Your Rank" value={`#${currentUserRank ?? "-"}`} />
+              <StatCard label="Your Points" value={myPoints} />
+              <StatCard label="Solved" value={`${mySolved}/10`} />
             </div>
-
           </div>
         </main>
       </div>
+
+      {showRules && (
+  <RulesModal
+    onClose={() => setShowRules(false)}
+    onStart={() => navigate("/quiz")}
+  />
+)}
+
     </div>
   );
 };
 
 export default DashboardPage;
 
-/* ================= PODIUM CARD ================= */
 
 const PodiumCard = ({
   user,
@@ -159,89 +154,47 @@ const PodiumCard = ({
 
   const styles =
     rank === 1
-      ? {
-          glow: "from-yellow-400/40 via-yellow-300/10 to-transparent",
-          ring: "ring-yellow-400/40",
-          number: "text-yellow-400",
-        }
+      ? { ring: "ring-yellow-400/40", number: "text-yellow-400" }
       : rank === 2
-      ? {
-          glow: "from-emerald-400/30 via-emerald-300/10 to-transparent",
-          ring: "ring-emerald-400/40",
-          number: "text-emerald-400",
-        }
-      : {
-          glow: "from-cyan-400/30 via-cyan-300/10 to-transparent",
-          ring: "ring-cyan-400/40",
-          number: "text-cyan-400",
-        };
-
-  const ordinal = rank === 1 ? "1st" : rank === 2 ? "2nd" : "3rd";
+      ? { ring: "ring-emerald-400/40", number: "text-emerald-400" }
+      : { ring: "ring-cyan-400/40", number: "text-cyan-400" };
 
   return (
     <div
-      className={`relative overflow-hidden rounded-3xl px-6 py-8 flex flex-col
-      bg-[#05060a]/90 border border-white/10 backdrop-blur-xl
-      ${champion ? "h-[340px]" : "h-[280px]"}
-      ring-2 ${styles.ring}
-      shadow-[0_0_80px_rgba(16,185,129,0.25)]`}
+      className={`relative rounded-3xl px-6 py-8 bg-[#05060a]/90 border border-white/10 ring-2 ${styles.ring}`}
     >
-      {/* Neon Glow Layer */}
-      <div
-        className={`absolute -inset-1 bg-gradient-to-t ${styles.glow} blur-3xl opacity-80`}
-      />
-
-      {/* Big Rank */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span
-          className={`text-[160px] font-black opacity-[0.08] ${styles.number}`}
-        >
-          {ordinal}
-        </span>
-      </div>
-
-      {/* Crown */}
       {champion && (
-        <div className="flex justify-center mb-4 relative z-10">
-          <Trophy className="text-yellow-400 drop-shadow-[0_0_20px_rgba(234,179,8,0.8)]" size={36} />
+        <div className="flex justify-center mb-3">
+          <Trophy className="text-yellow-400" size={32} />
         </div>
       )}
 
-      {/* Name */}
-      <h3 className="text-center text-xl font-semibold mb-6 relative z-10 tracking-wide">
-        {user.name}
-      </h3>
+      <h3 className="text-center text-xl font-semibold mb-6">{user.name}</h3>
 
-      <div className="flex-1" />
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 text-center relative z-10">
+      <div className="grid grid-cols-3 text-center">
         <div>
-          <p className="text-gray-400 text-xs uppercase">Points</p>
-          <p className="text-emerald-400 text-xl font-bold">
-            {user.points}
+          <p className="text-xs text-gray-400">Points</p>
+          <p className="text-xl font-bold text-emerald-400">
+            {user.totalPoints}
           </p>
         </div>
 
         <div>
-          <p className="text-gray-400 text-xs uppercase">Solved</p>
-          <p className="text-emerald-400 text-xl font-bold">
-            {user.solved ?? 0}/10
+          <p className="text-xs text-gray-400">Solved</p>
+          <p className="text-xl font-bold text-emerald-400">
+            {user.currentQuestionIndex ?? 0}/10
           </p>
         </div>
 
         <div>
-          <p className="text-gray-400 text-xs uppercase">Rank</p>
-          <p className={`text-xl font-bold ${styles.number}`}>
-            #{rank}
-          </p>
+          <p className="text-xs text-gray-400">Rank</p>
+          <p className={`text-xl font-bold ${styles.number}`}>#{rank}</p>
         </div>
       </div>
     </div>
   );
 };
 
-/* ================= STAT CARD ================= */
 
 const StatCard = ({ label, value }: { label: string; value: any }) => (
   <div className="rounded-xl border border-white/10 bg-[#0d1117]/80 backdrop-blur p-5">
@@ -253,3 +206,58 @@ const StatCard = ({ label, value }: { label: string; value: any }) => (
     </div>
   </div>
 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+const RulesModal = ({
+  onClose,
+  onStart,
+}: {
+  onClose: () => void;
+  onStart: () => void;
+}) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur">
+      <div className="w-full max-w-lg rounded-2xl bg-[#0d1117] border border-white/10 p-8 shadow-2xl">
+        <h2 className="text-2xl font-bold text-emerald-400 mb-4 text-center">
+          Contest Rules
+        </h2>
+
+        <ul className="space-y-3 text-gray-300 text-sm mb-6">
+          <li>• You will get <b>10 questions</b>.</li>
+          <li>• Each correct answer gives you <b>10 points</b>.</li>
+          <li>• Once you submit, you <b>cannot change</b> your answer.</li>
+          <li>• Leaderboard updates in <b>real time</b>.</li>
+          <li>• Top players appear on the <b>podium</b>.</li>
+          <li>• No refreshing or leaving during the contest.</li>
+        </ul>
+
+        <div className="flex gap-4">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl border border-white/10 text-gray-300 hover:border-red-500 hover:text-red-400 transition"
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={onStart}
+            className="flex-1 py-3 rounded-xl bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition"
+          >
+            Start Contest
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
