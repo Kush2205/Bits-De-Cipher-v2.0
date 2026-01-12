@@ -33,10 +33,8 @@ class QuizSocket {
                     return;
                 }
                 this.sendInitialData(socket, userStats);
-            });
-
-            
-
+                this.fetchAndEmitLeaderboardData(socket);
+            }); 
         })
     }
 
