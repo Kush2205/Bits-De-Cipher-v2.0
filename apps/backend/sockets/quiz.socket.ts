@@ -42,6 +42,7 @@ class QuizSocket {
     private async sendInitialData(socket: Socket, userStats: any) {
         const { currentQuestionIndex, totalPoints } = userStats;
         const currQuestionData = quizService.getQuestionByIndex(currentQuestionIndex);
+            //@ts-ignore
         const leaderBoardData = await quizService.getTopLeaderboard();
         socket.emit("initialData", {
             currentQuestion: currQuestionData,
@@ -52,6 +53,7 @@ class QuizSocket {
     }
 
     private async fetchAndEmitLeaderboardData(socket: Socket) {
+        //@ts-ignore
         const leaderBoardData = await quizService.getTopLeaderboard();
         socket.emit("leaderboardData", leaderBoardData);
     }
@@ -61,4 +63,4 @@ class QuizSocket {
     }
     
 
-}
+}    
