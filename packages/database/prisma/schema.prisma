@@ -7,6 +7,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id                   String               @id @default(uuid())
   email                String               @unique
@@ -14,6 +19,7 @@ model User {
   passwordHash         String?
   googleId             String?              @unique
   refreshTokenHash     String?
+  role                 Role                 @default(USER)
   totalPoints          Int                  @default(0)
   currentQuestionIndex Int                  @default(0)
   createdAt            DateTime             @default(now())

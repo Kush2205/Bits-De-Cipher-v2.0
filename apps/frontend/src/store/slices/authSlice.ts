@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import {login as loginApi,signup as signupApi,logout as logoutApi,googleLogin as googleLoginApi,getCurrentUser,} from '../../services/auth.service';
-import type {AuthResponse,LoginCredentials,SignupCredentials,User,} from '../../types/user.types';
+import {login as loginApi,signup as signupApi,signupAdmin as signupAdminApi,logout as logoutApi,googleLogin as googleLoginApi,getCurrentUser,} from '../../services/auth.service';
+import type {AuthResponse,LoginCredentials,SignupCredentials,User,AdminSugnupCredentials} from '../../types/user.types';
 
 interface AuthState {
   user: User | null;
@@ -76,6 +76,20 @@ export const signupUser = createAsyncThunk<AuthResponse, SignupCredentials>(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await signupApi(credentials.email, credentials.password, credentials.name);
+      storeTokens(response);
+      return response;
+    } catch (error: any) {
+      const message = error?.response?.data?.message || 'Failed to signup';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const signupAdmin = createAsyncThunk<AuthResponse, AdminSugnupCredentials>(
+  'auth/admin/signup',
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await signupAdminApi(credentials.email, credentials.password , credentials.adminSecret , credentials.name);
       storeTokens(response);
       return response;
     } catch (error: any) {
@@ -211,7 +225,23 @@ const authSlice = createSlice({
         state.refreshToken = null;
         state.status = 'idle';
         state.error = resolveErrorMessage(action.payload, 'Failed to logout');
+      })
+      .addCase(signupAdmin.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(signupAdmin.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken ?? null;
+        state.status = 'authenticated';
+        state.error = null;
+      })
+      .addCase(signupAdmin.rejected, (state, action) => {
+        state.status = 'error';
+        state.error = resolveErrorMessage(action.payload, 'Failed to signup admin');
       });
+
   },
 });
 

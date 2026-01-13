@@ -14,17 +14,17 @@ import {
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+type userRole = "USER"|"ADMIN";
 
-
-const generateAccessToken = (userId: string): string => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || "secret", {
+const generateAccessToken = (user: { id: string; role: userRole }): string => {
+  return jwt.sign({ userId:user.id , role:user.role }, process.env.JWT_SECRET || "secret", {
     expiresIn: "7d",
   });
 };
 
-const generateRefreshToken = (userId: string): string => {
+const generateRefreshToken = (user: { id: string; role: userRole }): string => {
   return jwt.sign(
-    { userId },
+    { userId:user.id , role:user.role },
     process.env.JWT_REFRESH_SECRET || "refresh-secret",
     {
       expiresIn: "30d",
@@ -53,8 +53,8 @@ const signupHandler = async (
 
     const user = await authService.createUser(email, hashedPassword, name);
 
-    const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken(user.id);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
     res.status(201).json({
       success: true,
@@ -95,8 +95,8 @@ const loginHandler = async (
         .json({ success: false, message: "Invalid credentials" });
     }
 
-    const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken(user.id);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
     const { passwordHash, refreshTokenHash, ...safeUser } = user;
 
@@ -143,8 +143,8 @@ const googleLoginHandler = async (
       "google"
     );
 
-    const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken(user.id);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
     res.json({
       success: true,
@@ -167,7 +167,15 @@ const refreshTokenHandler = async (req: Request, res: Response) => {
       process.env.JWT_REFRESH_SECRET || "refresh-secret"
     ) as { userId: string };
 
-    const accessToken = generateAccessToken(decoded.userId);
+    const user = await authService.findUserById(decoded.userId);
+     if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User no longer exists",
+      });
+    }
+
+    const accessToken = generateAccessToken(user);
 
     res.json({
       success: true,
@@ -215,6 +223,45 @@ export const logout = async (req: Request, res: Response) => {
   });
 };
 
+export const adminSignupHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password, name , adminSecret} = req.body;
+
+    if (adminSecret !== process.env.ADMIN_SIGNUP_SECRET) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const existingUser = await authService.findUserByEmail(email);
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await authService.createUser(email, hashedPassword, name , "ADMIN");
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    res.status(201).json({
+      success: true,
+      user,
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 export const signup = [validate(signupSchema), signupHandler];
