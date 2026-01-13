@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trophy } from "lucide-react";
 import LiveLeaderboard from "../components/LiveLeaderboard";
@@ -16,37 +15,27 @@ const DashboardPage = () => {
   const { user } = useAppSelector((state) => state.auth);
   const { isConnected } = useAppSelector((state) => state.socket);
   const { isJoined } = useAppSelector((state) => state.quiz);
-
   const { entries: leaderboard, currentUserRank } = useAppSelector(
     (state) => state.leaderboard
   );
 
   useEffect(() => {
-    if (user?.id) {
-      dispatch(setCurrentUserId(user.id));
-    }
+    if (user?.id) dispatch(setCurrentUserId(user.id));
   }, [user?.id, dispatch]);
 
   useEffect(() => {
-    if (isConnected && !isJoined) {
-      dispatch(joinQuizRoom());
-    }
+    if (isConnected && !isJoined) dispatch(joinQuizRoom());
   }, [dispatch, isConnected, isJoined]);
 
   const myEntry = leaderboard.find((p) => p.id === user?.id);
-
   const myPoints = myEntry?.totalPoints ?? 0;
   const mySolved = myEntry?.currentQuestionIndex ?? 0;
-
   const top3 = leaderboard.slice(0, 3);
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
     navigate("/login");
   };
-
-  const [showRules, setShowRules] = useState(false);
-
 
   return (
     <div className="relative min-h-screen bg-[#05060a] text-white overflow-hidden">
@@ -69,8 +58,17 @@ const DashboardPage = () => {
             <h1 className="text-lg font-semibold">
               Bits De <span className="text-emerald-400">Cipher</span>
             </h1>
+
             <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate("/rules")}
+                className="px-4 py-2 text-sm rounded-lg border border-emerald-400/40 text-emerald-400 hover:bg-emerald-400 hover:text-black transition"
+              >
+                Rules
+              </button>
+
               <span className="text-gray-400 text-sm">{user?.name}</span>
+
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm rounded-lg border border-white/10 hover:border-emerald-400 transition"
@@ -89,7 +87,6 @@ const DashboardPage = () => {
             </p>
           </div>
 
-          {/* PODIUM */}
           {leaderboard.length > 0 && (
             <div className="grid grid-cols-3 gap-6 mb-16 items-end">
               <PodiumCard user={top3[1]} rank={2} />
@@ -110,9 +107,8 @@ const DashboardPage = () => {
             </div>
 
             <div className="space-y-4">
-              
               <button
-  onClick={() => setShowRules(true)}
+  onClick={() => navigate("/quiz")}
   className="w-full py-4 rounded-xl bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition"
 >
   Start Contest
@@ -126,19 +122,12 @@ const DashboardPage = () => {
           </div>
         </main>
       </div>
-
-      {showRules && (
-  <RulesModal
-    onClose={() => setShowRules(false)}
-    onStart={() => navigate("/quiz")}
-  />
-)}
-
     </div>
   );
 };
 
 export default DashboardPage;
+
 
 
 const PodiumCard = ({
@@ -219,45 +208,3 @@ const StatCard = ({ label, value }: { label: string; value: any }) => (
 
 
 
-const RulesModal = ({
-  onClose,
-  onStart,
-}: {
-  onClose: () => void;
-  onStart: () => void;
-}) => {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur">
-      <div className="w-full max-w-lg rounded-2xl bg-[#0d1117] border border-white/10 p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-emerald-400 mb-4 text-center">
-          Contest Rules
-        </h2>
-
-        <ul className="space-y-3 text-gray-300 text-sm mb-6">
-          <li>• You will get <b>10 questions</b>.</li>
-          <li>• Each correct answer gives you <b>10 points</b>.</li>
-          <li>• Once you submit, you <b>cannot change</b> your answer.</li>
-          <li>• Leaderboard updates in <b>real time</b>.</li>
-          <li>• Top players appear on the <b>podium</b>.</li>
-          <li>• No refreshing or leaving during the contest.</li>
-        </ul>
-
-        <div className="flex gap-4">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-white/10 text-gray-300 hover:border-red-500 hover:text-red-400 transition"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={onStart}
-            className="flex-1 py-3 rounded-xl bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition"
-          >
-            Start Contest
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
