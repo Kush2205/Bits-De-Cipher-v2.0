@@ -15,6 +15,7 @@ import PrismaticBurst from "../components/layout/PixelSnowBackground";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
 import { joinQuizRoom } from "../store/slices/quizSlice";
+import { requestAllLeaderboard } from "../store/slices/leaderboardSlice";
 
 const DashboardPage = () => {
   const dispatch = useAppDispatch();
@@ -32,6 +33,8 @@ const DashboardPage = () => {
       dispatch(joinQuizRoom());
     }
   }, [dispatch, isConnected, isJoined]);
+  
+  dispatch(requestAllLeaderboard());
 
   const handleLogout = async () => {
     await dispatch(logoutUser());

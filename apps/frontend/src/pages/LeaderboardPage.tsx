@@ -93,52 +93,56 @@ const LeaderboardPage = () => {
 
         {/* ================= COMPLETE LIST SECTION ================= */}
         <div className="relative group">
-            {/* Subtle border glow effect */}
-            <div className="absolute -inset-px bg-gradient-to-b from-white/10 to-transparent rounded-2xl opacity-50" />
-            
-            <div className="relative divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0c10]/60 backdrop-blur-xl">
-            {entries.length > 0 ? (
-                entries.map((entry, index) => (
-                <div
-                    key={entry.id}
-                    className={`flex items-center justify-between px-8 py-5 text-sm transition-all duration-300 hover:bg-white/[0.03] ${
-                    entry.id === user?.id ? 'bg-emerald-500/5' : ''
-                    }`}
-                >
-                    <div className="flex items-center gap-6">
-                    <span className={`text-lg font-black w-8 ${
-                        index === 0 ? 'text-yellow-500' : 
-                        index === 1 ? 'text-gray-300' : 
-                        index === 2 ? 'text-orange-400' : 'text-gray-600'
-                    }`}>
-                        {(index + 1).toString().padStart(2, '0')}
+    {/* Subtle border glow effect */}
+    <div className="absolute -inset-px bg-gradient-to-b from-white/10 to-transparent rounded-2xl opacity-50" />
+    
+    <div className="relative divide-y divide-white/5 rounded-2xl border border-white/10 bg-[#0b0c10]/60 backdrop-blur-xl 
+        /* Scrollbar logic added here */
+        max-h-[840px] overflow-y-auto overflow-x-hidden
+        scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20">
+        
+        {entries.length > 0 ? (
+            entries.map((entry, index) => (
+            <div
+                key={entry.id}
+                className={`flex items-center justify-between px-8 py-5 text-sm transition-all duration-300 hover:bg-white/[0.03] ${
+                entry.id === user?.id ? 'bg-emerald-500/5' : ''
+                }`}
+            >
+                <div className="flex items-center gap-6">
+                <span className={`text-lg font-black w-8 ${
+                    index === 0 ? 'text-yellow-500' : 
+                    index === 1 ? 'text-gray-300' : 
+                    index === 2 ? 'text-orange-400' : 'text-gray-600'
+                }`}>
+                    {(index + 1).toString().padStart(2, '0')}
+                </span>
+                <div className="flex flex-col">
+                    <span className="text-gray-100 font-bold tracking-tight text-base">
+                        {entry.name || 'Anonymous'}
                     </span>
-                    <div className="flex flex-col">
-                        <span className="text-gray-100 font-bold tracking-tight text-base">
-                            {entry.name || 'Anonymous'}
+                    {entry.id === user?.id && (
+                        <span className="text-[10px] uppercase font-black text-emerald-500 tracking-widest flex items-center gap-1">
+                          {/* You can add 'YOU' text here if needed */}
                         </span>
-                        {entry.id === user?.id && (
-                            <span className="text-[10px] uppercase font-black text-emerald-500 tracking-widest flex items-center gap-1">
-                              
-                            </span>
-                        )}
-                    </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                        <span className="font-mono font-black text-lg text-emerald-400">
-                            {entry.totalPoints?.toLocaleString()}
-                        </span>
-                        <span className="text-[9px] uppercase text-gray-500 font-bold tracking-tighter">Points</span>
-                    </div>
+                    )}
                 </div>
-                ))
-            ) : status !== 'loading' ? (
-                <div className="flex items-center justify-center p-16 text-sm text-gray-500 italic">
-                No leaderboard data yet.
                 </div>
-            ) : null}
+                <div className="flex flex-col items-end">
+                    <span className="font-mono font-black text-lg text-emerald-400">
+                        {entry.totalPoints?.toLocaleString()}
+                    </span>
+                    <span className="text-[9px] uppercase text-gray-500 font-bold tracking-tighter">Points</span>
+                </div>
             </div>
-        </div>
+            ))
+        ) : status !== 'loading' ? (
+            <div className="flex items-center justify-center p-16 text-sm text-gray-500 italic">
+            No leaderboard data yet.
+            </div>
+        ) : null}
+    </div>
+</div>
       </div>
     </div>
   );
