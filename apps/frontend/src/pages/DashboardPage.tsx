@@ -38,11 +38,6 @@ const DashboardPage = () => {
   
   dispatch(requestAllLeaderboard());
 
-  const myEntry = leaderboard.find((p) => p.id === user?.id);
-  const myPoints = myEntry?.totalPoints ?? 0;
-  const mySolved = myEntry?.currentQuestionIndex ?? 0;
-  const top3 = leaderboard.slice(0, 3);
-
   const handleLogout = async () => {
     await dispatch(logoutUser());
     navigate("/login");
