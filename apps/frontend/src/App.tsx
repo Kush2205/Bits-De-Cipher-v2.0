@@ -12,6 +12,7 @@ import { fetchCurrentUser } from './store/slices/authSlice';
 import { connectSocket, disconnectSocket } from './store/slices/socketSlice';
 import { setCurrentUserId } from './store/slices/leaderboardSlice';
 import ContestTimerPage from "./pages/ContestTimerPage"
+import AdminSignupPage from './pages/AdminSignupPage';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -41,6 +42,7 @@ function App() {
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/admin/signup" element={<AdminSignupPage />} />
         
         <Route
           path="/dashboard"

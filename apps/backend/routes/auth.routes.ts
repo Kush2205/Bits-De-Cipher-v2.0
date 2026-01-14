@@ -7,6 +7,7 @@ import {
   loginSchema,
   googleLoginSchema,
   refreshTokenSchema,
+  adminSignupSchema
 } from "../middleware/validation.middleware.ts";
 
 const router = Router();
@@ -18,5 +19,7 @@ router.post('/refresh',validate(refreshTokenSchema), authController.refreshToken
 router.post('/logout', authController.logout);
 
 router.get('/me', authenticate, authController.getCurrentUser);
+
+router.post("/admin/signup",validate(adminSignupSchema) , authController.adminSignupHandler);
 
 export default router;

@@ -8,15 +8,15 @@ datasource db {
 }
 
 enum Role {
-  user
-  admin
+  USER
+  ADMIN
 }
 
 model User {
   id                   String               @id @default(uuid())
   email                String               @unique
   name                 String?
-  role                 Role                 @default(user)
+  role                 Role                 @default(USER)
   passwordHash         String?
   googleId             String?              @unique
   refreshTokenHash     String?

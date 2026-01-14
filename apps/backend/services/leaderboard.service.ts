@@ -2,6 +2,9 @@ import prisma from '@repo/db/client';
 
 export const getTopLeaderboard = async (limit = 15) => {
   return prisma.user.findMany({
+    where:{
+      role:"USER"
+    },
     orderBy: [{ totalPoints: 'desc' }, { createdAt: 'asc' }],
     take: limit,
     select: {
@@ -16,6 +19,9 @@ export const getTopLeaderboard = async (limit = 15) => {
 
 export const getAllLeaderboard = async () => {
   return prisma.user.findMany({
+    where:{
+      role:"USER"
+    },
     orderBy: [{ totalPoints: 'desc' }, { createdAt: 'asc' }],
     select: {
       id: true,
