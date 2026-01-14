@@ -28,13 +28,20 @@ const DashboardPage = () => {
   
   const userRank = leaderboard.findIndex((p) => p.id === user?.id) + 1 || "-";
 
+  // useEffect(() => {
+  //   if (user?.id) dispatch(setCurrentUserId(user.id));
+  // }, [user?.id, dispatch]);
+
   useEffect(() => {
-    if (isConnected && !isJoined) {
-      dispatch(joinQuizRoom());
-    }
+    if (isConnected && !isJoined) dispatch(joinQuizRoom());
   }, [dispatch, isConnected, isJoined]);
   
   dispatch(requestAllLeaderboard());
+
+  const myEntry = leaderboard.find((p) => p.id === user?.id);
+  const myPoints = myEntry?.totalPoints ?? 0;
+  const mySolved = myEntry?.currentQuestionIndex ?? 0;
+  const top3 = leaderboard.slice(0, 3);
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
@@ -206,7 +213,6 @@ const DashboardPage = () => {
                     </div>
                 </button>
             </div>
-
           </div>
         </main>
       </div>
