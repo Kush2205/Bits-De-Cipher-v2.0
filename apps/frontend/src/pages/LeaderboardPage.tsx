@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {  Medal, ChevronLeft, LogOut, Crown,} from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logoutUser } from '../store/slices/authSlice';
-import { requestAllLeaderboard } from '../store/slices/leaderboardSlice';
+import { requestAllLeaderboard,handleLeaderboardUpdate} from '../store/slices/leaderboardSlice';
+import socketManager from '../lib/socket';
 
 const LeaderboardPage = () => {
   const navigate = useNavigate();
@@ -12,15 +13,25 @@ const LeaderboardPage = () => {
   const { entries, status, error } = useAppSelector((state) => state.leaderboard);
 
   useEffect(() => {
-    if (entries.length === 0) {
-      dispatch(requestAllLeaderboard());
-    }
-  }, [dispatch, entries.length]);
+    socketManager.emit('joinQuiz'); 
+    dispatch(requestAllLeaderboard());
+
+    const handleUpdate = (data: any) => {
+      console.log("Syncing score...", data);
+      dispatch(handleLeaderboardUpdate(data));
+    };
+    socketManager.on('leaderboard:update', handleUpdate);
+
+    return () => {
+      socketManager.off('leaderboard:update', handleUpdate);
+    };
+  }, [dispatch]);
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
     navigate('/login');
   };
+
 
   const top3 = entries.slice(0, 3);
 

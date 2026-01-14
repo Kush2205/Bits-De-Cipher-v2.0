@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = window.location.origin; // Replace with your backend socket URL
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL; // Replace with your backend socket URL
 
 class SocketManager {
   private socket: Socket | null = null;

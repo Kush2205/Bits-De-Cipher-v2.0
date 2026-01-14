@@ -22,7 +22,7 @@ export const setupSockets = (io: Server) => {
           }
 
           const currentQuestion = await getQuestionByIndex(userStats.currentQuestionIndex);
-          const leaderboard = await getTopLeaderboard(10);
+          const leaderboard = await getTopLeaderboard(200); //as per participants
 
           let hintUsage = { hint1Used: false, hint2Used: false };
           if (currentQuestion) {
@@ -52,6 +52,7 @@ export const setupSockets = (io: Server) => {
       });
     }else{
       socket.on('joinQuiz' , async()=>{
+        socket.join('game-room');
         const leaderboard = await getTopLeaderboard(10);
         socket.emit('initialData', {
             leaderboard,
