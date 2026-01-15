@@ -83,6 +83,22 @@ const setupSocketListeners = (socket: Socket, dispatch: Dispatch) => {
     dispatch(setLeaderboardError(message));
   });
 
+  bindHandler(socket, 'contestEnded', (payload: { message: string }) => {
+    dispatch(setQuizError(payload.message || 'Contest has ended'));
+    // Optionally redirect to contest ended page
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        window.location.href = '/contest-ended';
+      }, 2000);
+    }
+  });
+
+  bindHandler(socket, 'contestInfo', (payload: { hasEnded: boolean; remainingTime: number; endTime: string }) => {
+    if (payload.hasEnded) {
+      dispatch(setQuizError('Contest has ended'));
+    }
+  });
+
   handlersRegistered = true;
 };
 

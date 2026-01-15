@@ -1,5 +1,6 @@
 import prisma from '@repo/db/client';
 import { getIO } from '../socket';
+import { hasContestEnded, getRemainingTime, getContestEndTime } from '../config/contest.config';
 
 const normalize = (s: string) => s.trim().toLowerCase();
 const HINT1_PENALTY = 0.15;
@@ -55,6 +56,13 @@ const getHintUnlockInfo = (firstUserVisit: Date | null) => {
 };
 
 export const getUserStats = async (userId: string) => {
+  if (hasContestEnded()) {
+    return {
+      contestEnded: true,
+      message: 'Contest has ended',
+    };
+  }
+
   return prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -162,6 +170,11 @@ export const submitAnswer = async (opts: {
   usedHint1?: boolean;
   usedHint2?: boolean;
 }) => {
+  // Check if contest has ended
+  if (hasContestEnded()) {
+    throw new Error('Contest has ended. No more submissions are allowed.');
+  }
+
   const { userId, questionId, submittedText } = opts;
 
   const result = await prisma.$transaction(async (tx) => {
@@ -313,4 +326,10 @@ export const getTopLeaderboard = async (limit:number) => {
   });
 };
 
-
+export const getContestInfo = () => {
+  return {
+    hasEnded: hasContestEnded(),
+    remainingTime: getRemainingTime(),
+    endTime: getContestEndTime().toISOString(),
+  };
+};

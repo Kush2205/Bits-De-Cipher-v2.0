@@ -24,3 +24,7 @@ export interface LoginCredentials {
 export interface SignupCredentials extends LoginCredentials {
   name?: string;
 }
+
+export interface AdminSugnupCredentials extends SignupCredentials{
+  adminSecret:string;
+}

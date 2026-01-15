@@ -10,6 +10,10 @@ export const signup = async (email: string,password: string,name?: string): Prom
   const response = await api.post<AuthResponse>('/auth/signup', { email, password, name });
   return response.data;
 };
+export const signupAdmin = async (email: string, password: string, adminSecret: string, name?: string): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>('/auth/admin/signup', { email, password, name, adminSecret });
+  return response.data;
+};
 
 export const logout = async (): Promise<void> => {
   await api.post('/auth/logout');

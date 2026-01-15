@@ -1,9 +1,11 @@
 import { ExtendedError, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
+type UserRole = "USER" | "ADMIN";
 
 interface JWTPayload {
   userId: string;
   email: string;
+  role:UserRole;
 }
 
 const CONTEST_START_TIME = new Date("2026-01-16T19:00:00+05:30").getTime();
@@ -40,6 +42,7 @@ export const socketAuthMiddleware = (socket: Socket, next: (err?: ExtendedError)
 
     socket.data.userId = decoded.userId;
     socket.data.email = decoded.email;
+    socket.data.role = decoded.role;
     
     console.log(`✅ Socket authenticated for user: ${decoded.email} (${decoded.userId})`);
     next();

@@ -1,12 +1,14 @@
 import prisma  from '@repo/db/client';
+type userRole = "USER"|"ADMIN";
 
-export const createUser = async (email: string, hashedPassword: string, name?: string) => {
+export const createUser = async (email: string, hashedPassword: string, name?: string , role?:userRole) => {
   try {
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash: hashedPassword,
         name,
+        role: role??"USER"
       },
       select: {
         id: true,
@@ -16,6 +18,7 @@ export const createUser = async (email: string, hashedPassword: string, name?: s
         totalPoints: true,
         currentQuestionIndex: true,
         updatedAt: true,
+        role:true,
       }
     });
     return user;
@@ -48,6 +51,7 @@ export const findUserById = async (id: string) => {
       currentQuestionIndex: true,
       createdAt: true,
       updatedAt: true,
+      role:true
     }
   });
 };
@@ -70,6 +74,7 @@ export const findOrCreateOAuthUser = async (
       currentQuestionIndex: true,
       createdAt: true,
       updatedAt: true,
+      role:true
     }
   });
 
@@ -95,6 +100,7 @@ export const findOrCreateOAuthUser = async (
         currentQuestionIndex: true,
         createdAt: true,
         updatedAt: true,
+        role:true
       }
     });
     return user;
@@ -116,6 +122,7 @@ export const findOrCreateOAuthUser = async (
       currentQuestionIndex: true,
       createdAt: true,
       updatedAt: true,
+      role:true
     }
   });
 
@@ -135,6 +142,7 @@ export const updateUser = async (id: string, data: { name?: string }) => {
       currentQuestionIndex: true,
       createdAt: true,
       updatedAt: true,
+      role:true
     }
   });
 };

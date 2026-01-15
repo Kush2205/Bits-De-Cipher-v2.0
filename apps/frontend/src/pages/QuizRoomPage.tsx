@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import LiveLeaderboard from "../components/LiveLeaderboard";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
+import { getRemainingTime } from "../config/contest.config";
 import {
   joinQuizRoom,
   submitAnswer as submitAnswerThunk,
@@ -27,6 +28,8 @@ const QuizRoomPage = () => {
   const [shake, setShake] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false); // New Zoom State
   const [flashMessage, setFlashMessage] = useState<{title: string;message: string;} | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>(getRemainingTime());
+  const [contestEnded, setContestEnded] = useState(false);
 
   // --- LOGIC: UNCHANGED ---
   const formatInIST = (date: Date) => {
@@ -41,6 +44,30 @@ const QuizRoomPage = () => {
     }).format(date);
     return `${formatted} IST`;
   };
+
+  const formatTimeRemaining = (ms: number) => {
+    if (ms <= 0) return "00:00:00";
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+
+  // Timer effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const remaining = getRemainingTime();
+      setTimeRemaining(remaining);
+      
+      if (remaining <= 0 && !contestEnded) {
+        setContestEnded(true);
+        navigate('/contest-ended');
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [navigate, contestEnded]);
 
   useEffect(() => {
     if (socketState.isConnected && !quiz.isJoined && !quiz.isJoining) {
@@ -79,16 +106,32 @@ const QuizRoomPage = () => {
     if (!quiz.currentQuestion || !answer.trim() || quiz.isSubmitting) {
       return;
     }
-    const result = await dispatch(
-      submitAnswerThunk({
-        questionId: quiz.currentQuestion.id,
-        answer: answer.trim(),
-      })
-    ).unwrap();
+    
+    try {
+      const result = await dispatch(
+        submitAnswerThunk({
+          questionId: quiz.currentQuestion.id,
+          answer: answer.trim(),
+        })
+      ).unwrap();
 
-    if (result?.isCorrect && !result.alreadyCompleted) {
-      if (result.nextQuestion) {
-        setAnswer("");
+      if (result?.isCorrect && !result.alreadyCompleted) {
+        if (result.nextQuestion) {
+          setAnswer("");
+        }
+      }
+    } catch (error: any) {
+      // Show error message in flash message
+      const errorMessage = error?.message || error || 'Failed to submit answer';
+      if (errorMessage.toLowerCase().includes('contest has ended') || 
+          errorMessage.toLowerCase().includes('no more submissions')) {
+        setFlashMessage({
+          title: "Contest Ended",
+          message: "The contest has ended. No more submissions are allowed.",
+        });
+        setTimeout(() => {
+          navigate('/contest-ended');
+        }, 2000);
       }
     }
   };
@@ -242,7 +285,7 @@ const QuizRoomPage = () => {
     <div className="flex h-screen flex-col overflow-hidden bg-[#05060a] text-gray-300">
       {/* Flash Message */}
       {flashMessage && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[120] animate-in slide-in-from-top-2 fade-in duration-200">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-120 animate-in slide-in-from-top-2 fade-in duration-200">
           <div className="relative max-w-sm rounded-2xl border border-red-500/30 bg-[#0d0e12]/95 backdrop-blur-xl shadow-2xl shadow-red-900/30 p-4">
             
             {/* Close Button */}
@@ -287,6 +330,22 @@ const QuizRoomPage = () => {
               </h1>
             </div>
             <div className="flex items-center gap-4">
+              {/* Contest Timer */}
+              <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
+                timeRemaining < 5 * 60 * 1000 
+                  ? 'bg-red-500/10 border-red-500/30 animate-pulse' 
+                  : 'bg-white/5 border-white/10'
+              }`}>
+                <svg className={`w-4 h-4 ${timeRemaining < 5 * 60 * 1000 ? 'text-red-400' : 'text-emerald-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-right">
+                  <p className="text-[8px] uppercase tracking-widest text-gray-500 font-bold leading-none">Time Left</p>
+                  <p className={`text-xs font-bold font-mono ${timeRemaining < 5 * 60 * 1000 ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {formatTimeRemaining(timeRemaining)}
+                  </p>
+                </div>
+              </div>
               <div className="hidden sm:block text-right">
                 <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold leading-none">
                   Player
@@ -313,6 +372,10 @@ const QuizRoomPage = () => {
           <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-[#0d0e12] shadow-xl">
             {quiz.currentQuestion.imageUrl && (
               <div className="relative group flex items-center justify-center h-full w-full">
+                {/* Question Index Badge */}
+                <div className="absolute left-4 top-4 z-20 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 backdrop-blur-xl">
+                  <p className="text-xs font-black text-emerald-400">Q{quiz.userStats?.currentQuestionIndex !== undefined ? quiz.userStats.currentQuestionIndex + 1 : 1}</p>
+                </div>
                 <img
                   src={quiz.currentQuestion.imageUrl}
                   alt="Question"
@@ -327,7 +390,7 @@ const QuizRoomPage = () => {
             )}
 
             
-            <div className="absolute left-4 top-4 rounded-xl border border-white/10 bg-black/60 px-4 py-2 backdrop-blur-xl pointer-events-none z-10">
+            <div className="absolute right-4 top-4 rounded-xl border border-white/10 bg-black/60 px-4 py-2 backdrop-blur-xl pointer-events-none z-10">
               <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-0.5 leading-none">
                 Points
               </p>
