@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = window.location.origin;
+const SOCKET_URL ='http://localhost:5000';
 
 class SocketManager {
   private socket: Socket | null = null;

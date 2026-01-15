@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gfglogo from "../../public/logo.png"
 import { Instagram } from 'lucide-react';
-const TARGET_DATE = "2026-01-16T21:10:00+05:30";
+const TARGET_DATE = "2026-01-16T02:00:00+05:30";
 
 interface TimeLeft {
   days: number;
