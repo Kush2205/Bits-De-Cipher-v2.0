@@ -17,19 +17,108 @@ import bcrypt from 'bcrypt';
 
 const seedQuestions = async () => {
     const imgUrl = [
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731225/ckyvduhbhbsom7ocn82m.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731262/wop4q4uo4aryltrza7el.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1743691566/frzu0n52xnwjqbznrgaj.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731206/eywkdxvxereghq3khw7z.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731254/pz7klab0ga5akrnpcpf2.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731193/z7qucc49zmxpyxanqbms.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731253/cgqlgfbi60lmijqhmdrj.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731198/tuwlg01cupaj1qakmd9y.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731212/iqhykaljul1y37i4xk56.png",
-        "https://res.cloudinary.com/dmhd5ujgw/image/upload/v1739731216/oamepxa9507ppsdpru3c.png"
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501915/question-1_i0okas.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501924/question-2_bmu4qx.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501040/Screenshot_272_gxqaml.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501073/Screenshot_275_mydqkp.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768500966/Screenshot_266_xi51zs.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768500817/Screenshot_263_nqtetb.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768500957/Screenshot_265_eksjag.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501053/Screenshot_273_dxh2v8.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768500991/Screenshot_268_e1tqqg.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501016/Screenshot_270_vq9ttk.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501029/Screenshot_271_gteh0d.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501005/Screenshot_269_btzrra.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768500877/Screenshot_264_jphsf8.png",
+        "https://res.cloudinary.com/drfwbriwh/image/upload/v1768501063/Screenshot_274_oqjgcy.png",
     ];
 
+
     console.log("Seeding questions...");
+    
+    const hints = [
+        [
+            { number: 1, hintText: "Hint 1 for question 1" },
+            { number: 2, hintText: "Hint 2 for question 1" }
+        ],
+        [
+            { number: 1, hintText: "Hint 1 for question 2" },
+            { number: 2, hintText: "Hint 2 for question 2" }
+        ],
+        [
+            { number: 1, hintText: "Water flows from top of pyramid" },
+            { number: 2, hintText: "Also a reptile" }
+        ],
+        [
+            { number: 1, hintText: "MA211" },
+            { number: 2, hintText: "Multiply Matrix" }
+        ],
+        [
+            { number: 1, hintText: "Look beyond movement and perspective to what fix direction" },
+            { number: 2, hintText: "Light obeys a rule older than maps or camera" }
+        ],
+        [
+            { number: 1, hintText: "Language of spies" },
+            { number: 2, hintText: "Replace '/' with spaces" }
+        ],
+        [
+            { number: 1, hintText: "Order emerges when chaos is given shape" },
+            { number: 2, hintText: "Height matters more than direction" }
+        ],
+        [
+            { number: 1, hintText: "120 is 5!" },
+            { number: 2, hintText: "A week has 5 days" }
+        ],
+        [
+            { number: 1, hintText: "A-10 , F-15" },
+            { number: 2, hintText: "Base 16" }
+        ],
+        [
+            { number: 1, hintText: "Co-ordinates" },
+            { number: 2, hintText: "Factory" }
+        ],
+        [
+            { number: 1, hintText: "Split in pairs and reduce" },
+            { number: 2, hintText: "75 = L" }
+        ],
+        [
+            { number: 1, hintText: "Look from a diff dimension" },
+            { number: 2, hintText: "Mirror the images" }
+        ],
+        [
+            { number: 1, hintText: "Before the heist, all control lives in silence" },
+            { number: 2, hintText: "Lester's planning ground matters only before action" }
+        ],
+        [
+            { number: 1, hintText: "Before the heist, all control lives in silence" },
+            { number: 2, hintText: "Lester's planning ground matters only before action" }
+        ],
+        [
+            { number: 1, hintText: "Hint 15-1" },
+            { number: 2, hintText: "Hint 15-2" }
+        ]
+    ];
+
+    const points : number[] = [300, 300, 500, 500, 600, 700, 800, 1000, 1200, 1400 , 1600 , 1800, 2200,2500];
+
+    const correctAnswers = [
+        "ANSWER_1",
+        "ANSWER_2",
+        "python",
+        "shreya upadhyay",
+        "longitude",
+        "harish hirani",
+        "rgipt",
+        "friday",
+        "charles Babbage",
+        "kota",
+        "folder",
+        "sinner and saint",
+        "darnell bros garment factory",
+        " "
+    ];
+
+
     
     
     for (let index = 0; index < imgUrl.length; index++) {
