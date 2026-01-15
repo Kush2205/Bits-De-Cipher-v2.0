@@ -36,7 +36,9 @@ const DashboardPage = () => {
     if (isConnected && !isJoined) dispatch(joinQuizRoom());
   }, [dispatch, isConnected, isJoined]);
   
-  dispatch(requestAllLeaderboard());
+  useEffect(() => {
+    dispatch(requestAllLeaderboard());
+  },[dispatch])
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
