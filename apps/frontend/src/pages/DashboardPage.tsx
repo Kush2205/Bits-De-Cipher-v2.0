@@ -11,7 +11,7 @@ import {
   Terminal,
   
 } from "lucide-react";
-import PrismaticBurst from "../components/layout/PixelSnowBackground";
+
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
 import { joinQuizRoom } from "../store/slices/quizSlice";
@@ -47,22 +47,27 @@ const DashboardPage = () => {
 
   return (
     <div className="relative min-h-screen bg-[#05060a] text-gray-200 overflow-x-hidden">
-      {/* Background Layer */}
-      <div className="absolute inset-0 z-0">
-        <PrismaticBurst
-          animationType="rotate3d"
-          intensity={1.2}
-          speed={0.3}
-          distort={0.8}
-          paused={false}
-          offset={{ x: 0, y: 0 }}
-          hoverDampness={0.2}
-          rayCount={18}
-          mixBlendMode="lighten"
-          colors={["#059669", "#10b981", "#34d399"]}
-        />
-      </div>
-      <div className="absolute inset-0 bg-black/60 z-0" />
+      
+      {/* Animated radiating gradient */}
+      <div className="absolute inset-0 z-0 animate-pulse-glow bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.35)_0%,rgba(34,197,94,0.2)_30%,rgba(5,150,105,0.1)_50%,transparent_70%)]" />
+      
+      <div className="absolute inset-0 bg-black/30 z-0" />
+
+      <style>{`
+        @keyframes pulse-glow {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.15);
+            opacity: 0.7;
+          }
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 4s ease-in-out infinite;
+        }
+      `}</style>
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Navbar */}
