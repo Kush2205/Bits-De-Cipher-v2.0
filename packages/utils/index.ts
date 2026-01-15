@@ -126,16 +126,17 @@ const seedQuestions = async () => {
             data: {
                 name: `Question ${index + 1}`,
                 imageUrl: imgUrl[index],
-                points: 500,
-                maxPoints: 500,
+                points: points[index]!,
+                correctAnswer: correctAnswers[index]!.toLowerCase(),
+                maxPoints: points[index]!,
                 hints: {
                     create: [
                         {
-                            hintText: `This is hint 1 for question ${index + 1}`,
+                            hintText: hints[index]![0]!.hintText,
                             number: 1
                         },
                         {
-                            hintText: `This is hint 2 for question ${index + 1}`,
+                            hintText: hints[index]![1]!.hintText,
                             number: 2
                         }
                     ]
