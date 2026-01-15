@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import PrismaticBurst from "./PixelSnowBackground";
+
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -10,21 +10,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
     <div className="relative min-h-screen w-full overflow-hidden bg-[#05060a] text-white">
 
     
-      {/* ===== Animated Background ===== */}
-      <div className="absolute inset-0 z-0">
-        <PrismaticBurst
-          animationType="rotate3d"
-          intensity={1.5}
-          speed={0.4}
-          distort={0.8}
-          paused={false}
-          offset={{ x: 0, y: 0 }}
-          hoverDampness={0.25}
-          rayCount={18}
-          mixBlendMode="lighten"
-          colors={["#10b981", "#22c55e"]}
-        />
-      </div>
+     
 
       {/* Dark overlay for contrast */}
       <div className="absolute inset-0 bg-black/70 z-0" />

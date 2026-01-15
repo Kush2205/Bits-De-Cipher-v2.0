@@ -21,10 +21,12 @@ class QuizSocket {
     }
 
     public initializeSockets() {
-        this.io.on("connection", (socket) => {
+        this.io.on("connection", async (socket) => {
             console.log(`New client connected: ${socket.id}`);
             this.userId = socket.data.userId;
-
+            //@ts-ignore
+            const leaderboardData = await quizService.getTopLeaderboard();
+            this.io.emit("leaderboardData", leaderboardData);
             socket.on("joinQuiz", async () => {
                 const userStats = await quizService.getUserStats(this.userId!);
                 if (!userStats) {
@@ -32,15 +34,23 @@ class QuizSocket {
                     return;
                 }
                 this.sendInitialData(socket, userStats);
-                this.fetchAndEmitLeaderboardData(socket);
+                // Broadcast updated leaderboard to ALL connected clients when a user joins
+                this.broadcastLeaderboardUpdate();
             }); 
+            
         })
+    }
+
+    private async broadcastLeaderboardUpdate() {
+        //@ts-ignore
+        const leaderBoardData = await quizService.getTopLeaderboard();
+        this.io.emit("leaderboardData", leaderBoardData);
     }
 
     private async sendInitialData(socket: Socket, userStats: any) {
         const { currentQuestionIndex, totalPoints } = userStats;
         const currQuestionData = quizService.getQuestionByIndex(currentQuestionIndex);
-        //@ts-ignore
+            //@ts-ignore
         const leaderBoardData = await quizService.getTopLeaderboard();
         socket.emit("initialData", {
             currentQuestion: currQuestionData,
@@ -61,4 +71,4 @@ class QuizSocket {
     }
     
 
-}
+}    

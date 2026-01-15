@@ -7,10 +7,16 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id                   String               @id @default(uuid())
   email                String               @unique
   name                 String?
+  role                 Role                 @default(USER)
   passwordHash         String?
   googleId             String?              @unique
   refreshTokenHash     String?

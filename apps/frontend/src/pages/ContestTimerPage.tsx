@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gfglogo from "../../public/logo.png"
+import { Instagram } from 'lucide-react';
 const TARGET_DATE = "2026-01-10T10:00:00+05:30";
 
 interface TimeLeft {
@@ -112,6 +113,31 @@ const ContestTimerPage = () => {
             <p className="text-zinc-400 sm:text-xs mt-12 font-mono uppercase tracking-widest font-bold">
                 Beyond this timer lies the truth. Are you prepared to de-cipher it?
             </p>
+            <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-300">
+                  for more insider updates on contest follow
+                </span>
+              </div>
+
+              <a 
+                href="https://www.instagram.com/gfg_rgipt/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group flex items-center gap-2.5 px-4 py-2 bg-emerald-500/5 border border-emerald-500/20 rounded-xl transition-all duration-300 hover:bg-emerald-500/10 hover:border-emerald-500/40"
+              >
+                <Instagram size={20} className="text-emerald-400" />
+                <span className="text-[12px] font-bold text-gray-300 group-hover:text-white tracking-tight">
+                  @gfg_rgipt
+                </span>
+                <svg 
+                  className="w-3 h-3 text-emerald-400 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" 
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
           </div>
         ) : (
           <div className="relative animate-in zoom-in duration-500 py-8">

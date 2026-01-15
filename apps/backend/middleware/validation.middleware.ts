@@ -89,6 +89,26 @@ export const signupSchema = z.object({
     name: z.string().min(2).max(50),
   }),
 });
+export const adminSignupSchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .regex(
+        /^\d{2}[a-zA-Z]{2}\d{4}@rgipt\.ac\.in$/,
+        "Email must be of form 24cs3063@rgipt.ac.in"
+      ),
+
+    password: z
+      .string()
+      .min(6, "Minimum 6 characters")
+      .regex(/[A-Z]/, "One uppercase required")
+      .regex(/[0-9]/, "One number required")
+      .regex(/[^A-Za-z0-9]/, "One special character required"),
+
+    name: z.string().min(2).max(50),
+    adminSecret:z.string().min(2)
+  }),
+});
 
 
 export const loginSchema = z.object({

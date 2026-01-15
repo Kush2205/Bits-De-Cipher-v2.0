@@ -1,13 +1,21 @@
 import { useEffect } from "react";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy } from "lucide-react";
-import LiveLeaderboard from "../components/LiveLeaderboard";
-import PrismaticBurst from "../components/layout/PixelSnowBackground";
+import { 
+  Trophy, 
+   
+  ShieldCheck, 
+  Zap, 
+  Target, 
+  Play, 
+  LayoutDashboard, 
+  Terminal,
+  
+} from "lucide-react";
+
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
 import { joinQuizRoom } from "../store/slices/quizSlice";
-import { setCurrentUserId } from "../store/slices/leaderboardSlice";
+import { requestAllLeaderboard } from "../store/slices/leaderboardSlice";
 
 const DashboardPage = () => {
   const dispatch = useAppDispatch();
@@ -15,249 +23,222 @@ const DashboardPage = () => {
 
   const { user } = useAppSelector((state) => state.auth);
   const { isConnected } = useAppSelector((state) => state.socket);
-  const { isJoined } = useAppSelector((state) => state.quiz);
+  const { userStats, isJoined } = useAppSelector((state) => state.quiz);
+  const { entries: leaderboard = [] } = useAppSelector((state) => state.leaderboard);
+  
+  const userRank = leaderboard.findIndex((p) => p.id === user?.id) + 1 || "-";
 
-  const { entries: leaderboard, currentUserRank } = useAppSelector(
-    (state) => state.leaderboard
-  );
-
-  useEffect(() => {
-    if (user?.id) {
-      dispatch(setCurrentUserId(user.id));
-    }
-  }, [user?.id, dispatch]);
+  // useEffect(() => {
+  //   if (user?.id) dispatch(setCurrentUserId(user.id));
+  // }, [user?.id, dispatch]);
 
   useEffect(() => {
-    if (isConnected && !isJoined) {
-      dispatch(joinQuizRoom());
-    }
+    if (isConnected && !isJoined) dispatch(joinQuizRoom());
   }, [dispatch, isConnected, isJoined]);
-
-  const myEntry = leaderboard.find((p) => p.id === user?.id);
-
-  const myPoints = myEntry?.totalPoints ?? 0;
-  const mySolved = myEntry?.currentQuestionIndex ?? 0;
-
-  const top3 = leaderboard.slice(0, 3);
+  
+  useEffect(() => {
+    dispatch(requestAllLeaderboard());
+  },[dispatch])
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
     navigate("/login");
   };
 
-  const [showRules, setShowRules] = useState(false);
-
-
   return (
-    <div className="relative min-h-screen bg-[#05060a] text-white overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <PrismaticBurst
-          animationType="rotate3d"
-          intensity={1.6}
-          speed={0.45}
-          distort={0.9}
-          rayCount={22}
-          colors={["#10b981", "#22c55e", "#84cc16"]}
-        />
-      </div>
+    <div className="relative min-h-screen bg-[#05060a] text-gray-200 overflow-x-hidden">
+      
+      {/* Animated radiating gradient */}
+      <div className="absolute inset-0 z-0 animate-pulse-glow bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.35)_0%,rgba(34,197,94,0.2)_30%,rgba(5,150,105,0.1)_50%,transparent_70%)]" />
+      
+      <div className="absolute inset-0 bg-black/30 z-0" />
 
-      <div className="absolute inset-0 bg-black/70 z-0" />
+      <style>{`
+        @keyframes pulse-glow {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.15);
+            opacity: 0.7;
+          }
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 4s ease-in-out infinite;
+        }
+      `}</style>
 
-      <div className="relative z-10 min-h-screen">
-        <header className="border-b border-white/5 bg-black/40 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <h1 className="text-lg font-semibold">
-              Bits De <span className="text-emerald-400">Cipher</span>
-            </h1>
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Navbar */}
+        <nav className="shrink-0 border-b border-white/5 bg-[#0d0e12]/80 backdrop-blur-md">
+        <div className="mx-auto px-6">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold text-white tracking-tight italic">
+                Bits De Cipher
+              </h1>
+            </div>
             <div className="flex items-center gap-4">
-              <span className="text-gray-400 text-sm">{user?.name}</span>
+              <div className="hidden sm:block text-right">
+                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold leading-none">
+                  Player
+                </p>
+                <p className="text-xs font-semibold text-emerald-400">
+                  {user?.name || user?.email}
+                </p>
+              </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm rounded-lg border border-white/10 hover:border-emerald-400 transition"
+                className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-gray-400 transition-all hover:text-red-500"
               >
                 Logout
               </button>
             </div>
           </div>
-        </header>
+        </div>
+      </nav>
 
-        <main className="max-w-7xl mx-auto px-6 py-10">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-bold">Live Leaderboard</h2>
-            <p className="text-gray-400 mt-2">
-              Compete in real-time and win rewards
-            </p>
+        <main className="max-w-7xl mx-auto px-6 py-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* LEFT COLUMN: ABOUT & RULES */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* Hero Section */}
+            <div className="relative p-10 rounded-[2.5rem] border border-white/5 bg-[#0d0e12]/60 backdrop-blur-2xl overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <Terminal size={120} className="text-emerald-500" />
+                </div>
+                <h2 className="text-4xl font-black text-white uppercase tracking-tighter italic mb-4">
+                  What is <span className="text-emerald-500">Bits De Cipher</span> ?
+                </h2>
+                <p className="text-gray-400 leading-relaxed max-w-2xl font-medium">
+                  Welcome to <span className="text-white font-bold italic">Bits De Cipher</span>. 
+                  Your goal is to solve a series of visual puzzles, each hiding a secret code. Think outside the box, find the pattern, and enter the answer to move to the next question.
+                  The clock is ticking—how fast can you solve them?
+                </p>
+            </div>
+
+            {/* About & Rules Grid */}
+            <div className=" gap-6">
+
+                {/* Rules Card */}
+                <div className="p-8 rounded-3xl border border-white/5 bg-[#0d0e12]/40 backdrop-blur-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 border border-amber-500/20">
+                      <ShieldCheck size={20} />
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white uppercase tracking-tight italic">
+                      Contest Rules
+                    </h3>
+                  </div>
+
+                    
+                    <ul className="text-xs text-gray-400 space-y-3 font-mono uppercase tracking-wider">
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">▶</span>
+                            Rule 1
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">▶</span>
+                            Rule 2
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">▶</span>
+                            Rule 3
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">▶</span>
+                            Rule 4
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">▶</span>
+                            Rule 5
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">▶</span>
+                            Rule 6
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="text-emerald-500 mt-0.5">▶</span>
+                            Rule 7
+                        </li>
+                    </ul>
+                </div>
+            </div>
           </div>
 
-          {/* PODIUM */}
-          {leaderboard.length > 0 && (
-            <div className="grid grid-cols-3 gap-6 mb-16 items-end">
-              <PodiumCard user={top3[1]} rank={2} />
-              <PodiumCard user={top3[0]} rank={1} champion />
-              <PodiumCard user={top3[2]} rank={3} />
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <div className="rounded-2xl border border-white/10 bg-[#0d1117]/80 p-6">
-                <LiveLeaderboard
-                  participants={leaderboard}
-                  currentUserId={user?.id || ""}
-                  limit={10}
-                />
-              </div>
+          {/* RIGHT COLUMN: STATS & NAVIGATION */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* User Stats Card */}
+            <div className="p-8 rounded-[2rem] border border-white/5 bg-[#0d0e12]/80 backdrop-blur-2xl shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-500 mb-8 flex items-center gap-2">
+                    <LayoutDashboard size={14} className="text-emerald-500" />
+                    Your Status
+                </h3>
+                
+                <div className="space-y-6">
+                    <StatRow label="Current Rank" value={`#${userRank}`} icon={<Trophy size={16} className="text-yellow-400" />} />
+                    <StatRow label="Total Score" value={userStats?.totalPoints ?? 0} icon={<Zap size={16} className="text-emerald-400" />} />
+                    <StatRow label="Questions Solved" value={`${userStats?.currentQuestionIndex ?? 0}/10`} icon={<Target size={16} className="text-cyan-400" />} />
+                </div>
             </div>
 
-            <div className="space-y-4">
-              
-              <button
-  onClick={() => setShowRules(true)}
-  className="w-full py-4 rounded-xl bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition"
->
-  Start Contest
-</button>
+            {/* Navigation Buttons */}
+            <div className="space-y-3">
+                {/* 1. START CONTEST */}
+                <button
+                    onClick={() => navigate("/quiz")}
+                    className="group relative w-full overflow-hidden rounded-2xl bg-emerald-600 p-px transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                >
+                    <div className="relative flex items-center justify-center gap-3 rounded-2xl bg-[#05060a] px-8 py-5 transition-all group-hover:bg-transparent">
+                    <Play size={20} className="text-emerald-400 group-hover:text-black fill-current" />
+                    <span className="text-lg font-black uppercase tracking-widest text-emerald-400 group-hover:text-black">
+                        Start Contest
+                    </span>
+                    </div>
+                </button>
 
-
-              <StatCard label="Your Rank" value={`#${currentUserRank ?? "-"}`} />
-              <StatCard label="Your Points" value={myPoints} />
-              <StatCard label="Solved" value={`${mySolved}/10`} />
+                {/* 2. LIVE LEADERBOARD */}
+                <button
+                    onClick={() => navigate("/leaderboard")}
+                    className="group relative w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-px transition-all hover:border-emerald-500/50"
+                >
+                    <div className="flex items-center justify-center gap-3 px-8 py-4 text-gray-400 transition-all group-hover:text-white">
+                        <BarChart3Icon size={18} />
+                        <span className="text-sm font-black uppercase tracking-widest">
+                            Live Leaderboard
+                        </span>
+                    </div>
+                </button>
             </div>
           </div>
         </main>
       </div>
-
-      {showRules && (
-  <RulesModal
-    onClose={() => setShowRules(false)}
-    onStart={() => navigate("/quiz")}
-  />
-)}
-
     </div>
   );
 };
 
-export default DashboardPage;
-
-
-const PodiumCard = ({
-  user,
-  rank,
-  champion,
-}: {
-  user: any;
-  rank: number;
-  champion?: boolean;
-}) => {
-  if (!user) return <div />;
-
-  const styles =
-    rank === 1
-      ? { ring: "ring-yellow-400/40", number: "text-yellow-400" }
-      : rank === 2
-      ? { ring: "ring-emerald-400/40", number: "text-emerald-400" }
-      : { ring: "ring-cyan-400/40", number: "text-cyan-400" };
-
-  return (
-    <div
-      className={`relative rounded-3xl px-6 py-8 bg-[#05060a]/90 border border-white/10 ring-2 ${styles.ring}`}
-    >
-      {champion && (
-        <div className="flex justify-center mb-3">
-          <Trophy className="text-yellow-400" size={32} />
+// Internal Helper Components
+const StatRow = ({ label, value, icon }: { label: string; value: any; icon: React.ReactNode }) => (
+    <div className="flex items-center justify-between group">
+        <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white/5 border border-white/5 text-gray-400 group-hover:text-white transition-colors">
+                {icon}
+            </div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{label}</span>
         </div>
-      )}
-
-      <h3 className="text-center text-xl font-semibold mb-6">{user.name}</h3>
-
-      <div className="grid grid-cols-3 text-center">
-        <div>
-          <p className="text-xs text-gray-400">Points</p>
-          <p className="text-xl font-bold text-emerald-400">
-            {user.totalPoints}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-xs text-gray-400">Solved</p>
-          <p className="text-xl font-bold text-emerald-400">
-            {user.currentQuestionIndex ?? 0}/10
-          </p>
-        </div>
-
-        <div>
-          <p className="text-xs text-gray-400">Rank</p>
-          <p className={`text-xl font-bold ${styles.number}`}>#{rank}</p>
-        </div>
-      </div>
+        <span className="text-xl font-black text-white italic tracking-tighter">{value}</span>
     </div>
-  );
-};
-
-
-const StatCard = ({ label, value }: { label: string; value: any }) => (
-  <div className="rounded-xl border border-white/10 bg-[#0d1117]/80 backdrop-blur p-5">
-    <div className="text-xs uppercase tracking-wide text-gray-500">
-      {label}
-    </div>
-    <div className="mt-2 text-3xl font-bold text-emerald-400">
-      {value}
-    </div>
-  </div>
 );
 
+const BarChart3Icon = ({ size }: { size: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" />
+    </svg>
+);
 
-
-
-
-
-
-
-
-
-
-
-
-const RulesModal = ({
-  onClose,
-  onStart,
-}: {
-  onClose: () => void;
-  onStart: () => void;
-}) => {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur">
-      <div className="w-full max-w-lg rounded-2xl bg-[#0d1117] border border-white/10 p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-emerald-400 mb-4 text-center">
-          Contest Rules
-        </h2>
-
-        <ul className="space-y-3 text-gray-300 text-sm mb-6">
-          <li>• You will get <b>10 questions</b>.</li>
-          <li>• Each correct answer gives you <b>10 points</b>.</li>
-          <li>• Once you submit, you <b>cannot change</b> your answer.</li>
-          <li>• Leaderboard updates in <b>real time</b>.</li>
-          <li>• Top players appear on the <b>podium</b>.</li>
-          <li>• No refreshing or leaving during the contest.</li>
-        </ul>
-
-        <div className="flex gap-4">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-white/10 text-gray-300 hover:border-red-500 hover:text-red-400 transition"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={onStart}
-            className="flex-1 py-3 rounded-xl bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition"
-          >
-            Start Contest
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+export default DashboardPage;
