@@ -138,31 +138,31 @@ const DashboardPage = () => {
                     <ul className="text-xs text-gray-400 space-y-3 font-mono uppercase tracking-wider">
                         <li className="flex items-start gap-2">
                             <span className="text-emerald-500 mt-0.5">▶</span>
-                            Rule 1
+                              This quiz consists of 14 questions. Points of each question are mentioned along with it.
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-emerald-500 mt-0.5">▶</span>
-                            Rule 2
+                            Each correct answer will award you the points assigned to that question. After each correct answer the points of the question will be reduced by 4%.
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-emerald-500 mt-0.5">▶</span>
-                            Rule 3
+                            You can use two hints for each question. Hint 1 will reduce the question points by 20% and Hint 2 will reduce the question points by 40%.
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-emerald-500 mt-0.5">▶</span>
-                            Rule 4
+                            Hints will be unlocked 3 hours after the first user who reaches that question.
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-emerald-500 mt-0.5">▶</span>
-                            Rule 5
+                            For any question , answers are case-insensitive.
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-emerald-500 mt-0.5">▶</span>
-                            Rule 6
+                            In case of any issue with website or questions, do not panic your data will be saved. Contact the organizers at geeksforgeeks@rgipt.ac.in.
                         </li>
                         <li className="flex items-start gap-2">
                             <span className="text-emerald-500 mt-0.5">▶</span>
-                            Rule 7
+                            In case of any dispute ,the decision of the organizing committee will be final and binding.
                         </li>
                     </ul>
                 </div>
