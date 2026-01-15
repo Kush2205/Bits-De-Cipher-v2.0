@@ -46,7 +46,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#05060a] text-gray-200 overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#05060a] text-gray-200 overflow-hidden">
       
       {/* Animated radiating gradient */}
       <div className="absolute inset-0 z-0 animate-pulse-glow bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.35)_0%,rgba(34,197,94,0.2)_30%,rgba(5,150,105,0.1)_50%,transparent_70%)]" />
@@ -69,7 +69,7 @@ const DashboardPage = () => {
         }
       `}</style>
 
-      <div className="relative z-10 min-h-screen flex flex-col">
+      <div className="relative z-10 flex flex-col h-screen">
         {/* Navbar */}
         <nav className="shrink-0 border-b border-white/5 bg-[#0d0e12]/80 backdrop-blur-md">
         <div className="mx-auto px-6">
@@ -99,7 +99,7 @@ const DashboardPage = () => {
         </div>
       </nav>
 
-        <main className="max-w-7xl mx-auto px-6 py-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <main className="flex-1 overflow-y-auto max-w-7xl mx-auto px-6 py-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* LEFT COLUMN: ABOUT & RULES */}
           <div className="lg:col-span-8 space-y-8">

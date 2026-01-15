@@ -45,6 +45,8 @@ export const setupSockets = (io: Server) => {
             leaderboard,
             hintUsage,
           });
+
+          io.to('game-room').emit('leaderboardData', { leaderboard });
         } catch (error) {
           console.error('Error in joinQuiz:', error);
           socket.emit('error', { message: 'Failed to load quiz data' });
@@ -57,6 +59,8 @@ export const setupSockets = (io: Server) => {
         socket.emit('initialData', {
             leaderboard,
         });
+
+        io.to('game-room').emit('leaderboardData', { leaderboard: await getTopLeaderboard(200) });
       })
     }
 
