@@ -8,7 +8,7 @@ interface JWTPayload {
   role:UserRole;
 }
 
-const CONTEST_START_TIME = new Date("2026-01-16T21:00:00+05:30).getTime();
+const CONTEST_START_TIME = new Date("2026-01-16T21:10:00+05:30").getTime();
 
 export const socketAuthMiddleware = (socket: Socket, next: (err?: ExtendedError) => void) => {
   const currentTime = Date.now();
