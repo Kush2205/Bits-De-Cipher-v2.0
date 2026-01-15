@@ -183,7 +183,7 @@ const DashboardPage = () => {
                 <div className="space-y-6">
                     <StatRow label="Current Rank" value={`#${userRank}`} icon={<Trophy size={16} className="text-yellow-400" />} />
                     <StatRow label="Total Score" value={userStats?.totalPoints ?? 0} icon={<Zap size={16} className="text-emerald-400" />} />
-                    <StatRow label="Questions Solved" value={`${userStats?.currentQuestionIndex ?? 0}/10`} icon={<Target size={16} className="text-cyan-400" />} />
+                    <StatRow label="Questions Solved" value={`${userStats?.currentQuestionIndex ?? 0}/14`} icon={<Target size={16} className="text-cyan-400" />} />
                 </div>
             </div>
 

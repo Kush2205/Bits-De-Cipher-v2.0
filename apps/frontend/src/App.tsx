@@ -7,6 +7,7 @@ import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import QuizRoomPage from './pages/QuizRoomPage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import ContestEndedPage from './pages/ContestEndedPage';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { fetchCurrentUser } from './store/slices/authSlice';
 import { connectSocket, disconnectSocket } from './store/slices/socketSlice';
@@ -82,6 +83,15 @@ function App() {
           element={
               <PrivateRoute>
                 <ContestTimerPage/>
+              </PrivateRoute>
+          } 
+        />
+
+        <Route 
+          path="/contest-ended" 
+          element={
+              <PrivateRoute>
+                <ContestEndedPage/>
               </PrivateRoute>
           } 
         />

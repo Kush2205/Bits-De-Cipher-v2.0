@@ -208,7 +208,18 @@ const quizSlice = createSlice({
       })
       .addCase(submitAnswer.rejected, (state, action) => {
         state.isSubmitting = false;
-        state.error = (action.payload as string) || 'Failed to submit answer';
+        const errorMessage = (action.payload as string) || 'Failed to submit answer';
+        state.error = errorMessage;
+        
+        // If contest has ended, show specific message
+        if (errorMessage.toLowerCase().includes('contest has ended') || 
+            errorMessage.toLowerCase().includes('no more submissions')) {
+          state.lastSubmitResult = {
+            isCorrect: false,
+            awardedPoints: 0,
+            alreadyCompleted: false,
+          };
+        }
       })
       .addCase(useHint.fulfilled, (state, action) => {
         if ((action.payload as any).locked) {
