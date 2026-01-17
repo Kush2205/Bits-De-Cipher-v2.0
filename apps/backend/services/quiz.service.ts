@@ -6,7 +6,7 @@ const normalize = (s: string) => s.trim().toLowerCase();
 const HINT1_PENALTY = 0.15;
 const HINT2_PENALTY = 0.3;
 const DECAY_RATE = 0.04; 
-const HINT_UNLOCK_MS = 0.5 * 60 * 60 * 1000;
+const HINT_UNLOCK_MS = 1 * 60 * 60 * 1000;
 
 export class HintLockedError extends Error {
   statusCode = 403;
