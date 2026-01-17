@@ -1,6 +1,6 @@
 // Contest timing configuration
 export const CONTEST_START_TIME = "2026-01-16T19:00:00+05:30";
-export const CONTEST_DURATION_HOURS = 24;
+export const CONTEST_DURATION_HOURS = 26;
 
 /**
  * Get the contest start time as a Date object
