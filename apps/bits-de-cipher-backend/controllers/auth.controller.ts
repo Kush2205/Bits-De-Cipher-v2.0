@@ -3,8 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 
-import * as authService from "../services/auth.service";
-import { validate } from "../middleware/validation.middleware";
+import * as authService from "../services/auth.service.ts";
+import { validate } from "../middleware/validation.middleware.ts";
 import {
   signupSchema,
   loginSchema,

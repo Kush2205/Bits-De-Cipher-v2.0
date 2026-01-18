@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import * as authController from '../controllers/auth.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { validate } from "../middleware/validation.middleware";
+import * as authController from '../controllers/auth.controller.ts';
+import { authenticate } from '../middleware/auth.middleware.ts';
+import { validate } from "../middleware/validation.middleware.ts";
 import {
   signupSchema,
   loginSchema,
